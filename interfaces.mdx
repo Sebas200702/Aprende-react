@@ -1,0 +1,406 @@
+---
+title: "Interfaces"
+description: "Define la estructura de tus datos con TypeScript"
+---
+
+# Interfaces: El plano de construcción 📐
+
+Si los componentes son los bloques de LEGO, las **interfaces son las instrucciones** que te dicen qué tipo de bloques necesitas y cómo encajan.
+
+## ¿Qué es una interfaz?
+
+Una interfaz es como un **contrato** o **molde** que define exactamente qué propiedades debe tener un objeto y de qué tipo son.
+
+<Info>
+  **Piensa en ello así**: Una interfaz es como el **formulario de inscripción** a un gimnasio. Especifica qué información necesitas (nombre, edad, teléfono) y de qué tipo (texto, número, etc.).
+</Info>
+
+## Sin interfaces vs Con interfaces
+
+### ❌ Sin interfaces (JavaScript)
+
+```javascript
+// ¿Qué propiedades tiene este usuario? No lo sabemos...
+const usuario = {
+  nombre: "Ana",
+  edad: 25,
+  email: "ana@email.com"
+};
+
+// Esto compilaría pero fallaría en tiempo de ejecución
+console.log(usuario.telefono); // undefined - ¡Uy!
+```
+
+### ✅ Con interfaces (TypeScript)
+
+```typescript
+interface Usuario {
+  nombre: string;
+  edad: number;
+  email: string;
+}
+
+const usuario: Usuario = {
+  nombre: "Ana",
+  edad: 25,
+  email: "ana@email.com"
+};
+
+// TypeScript te avisa antes de ejecutar
+console.log(usuario.telefono); // ❌ Error: 'telefono' no existe en Usuario
+```
+
+<Tip>
+  Las interfaces te ayudan a **detectar errores antes de ejecutar el código**. Es como tener un asistente que revisa tu trabajo.
+</Tip>
+
+## Tu primera interfaz
+
+```typescript
+interface Producto {
+  nombre: string;
+  precio: number;
+  enStock: boolean;
+}
+```
+
+Esto dice:
+- ✅ `nombre` debe ser un texto (string)
+- ✅ `precio` debe ser un número (number)
+- ✅ `enStock` debe ser verdadero o falso (boolean)
+
+## Usando una interfaz
+
+```typescript
+// ✅ Correcto
+const laptop: Producto = {
+  nombre: "MacBook Pro",
+  precio: 2499,
+  enStock: true
+};
+
+// ❌ Error: falta 'enStock'
+const mouse: Producto = {
+  nombre: "Mouse inalámbrico",
+  precio: 29
+  // TypeScript te dirá que falta enStock
+};
+
+// ❌ Error: 'precio' debe ser número, no texto
+const teclado: Producto = {
+  nombre: "Teclado mecánico",
+  precio: "49 dólares", // Mal tipo
+  enStock: true
+};
+```
+
+## Propiedades opcionales
+
+A veces una propiedad no siempre es necesaria. Usa `?`:
+
+```typescript
+interface Persona {
+  nombre: string;
+  apellido: string;
+  edad: number;
+  telefono?: string; // Opcional (puede existir o no)
+  email?: string;    // Opcional
+}
+
+// ✅ Válido sin teléfono ni email
+const persona1: Persona = {
+  nombre: "Carlos",
+  apellido: "García",
+  edad: 30
+};
+
+// ✅ También válido con teléfono
+const persona2: Persona = {
+  nombre: "María",
+  apellido: "López",
+  edad: 28,
+  telefono: "555-1234"
+};
+```
+
+<Note>
+  El `?` significa "esta propiedad puede existir o no". Es como decir "teléfono: opcional" en un formulario.
+</Note>
+
+## Ejemplo cotidiano: Red social
+
+Imagina que construyes Instagram. Así definirías un post:
+
+```typescript
+interface Post {
+  id: number;
+  autor: string;
+  imagen: string;
+  descripcion: string;
+  likes: number;
+  comentarios: number;
+  fechaPublicacion: Date;
+  ubicacion?: string; // No todos los posts tienen ubicación
+}
+
+const miPost: Post = {
+  id: 12345,
+  autor: "juan_dev",
+  imagen: "https://ejemplo.com/foto.jpg",
+  descripcion: "¡Aprendiendo React! 🚀",
+  likes: 42,
+  comentarios: 8,
+  fechaPublicacion: new Date(),
+  ubicacion: "Ciudad de México"
+};
+```
+
+## Interfaces anidadas
+
+Puedes tener interfaces dentro de otras interfaces:
+
+```typescript
+interface Direccion {
+  calle: string;
+  numero: number;
+  ciudad: string;
+  codigoPostal: string;
+}
+
+interface Empresa {
+  nombre: string;
+  direccion: Direccion; // Usa otra interfaz
+  empleados: number;
+}
+
+const miEmpresa: Empresa = {
+  nombre: "Tech Solutions",
+  direccion: {
+    calle: "Av. Principal",
+    numero: 123,
+    ciudad: "Madrid",
+    codigoPostal: "28001"
+  },
+  empleados: 50
+};
+```
+
+<Tip>
+  Esto es como **cajas dentro de cajas**. Cada interfaz mantiene su responsabilidad clara.
+</Tip>
+
+## Arrays en interfaces
+
+Para definir listas de elementos:
+
+```typescript
+interface Usuario {
+  nombre: string;
+  hobbies: string[]; // Array de strings
+  amigos: Usuario[]; // Array de usuarios
+}
+
+const usuario: Usuario = {
+  nombre: "Laura",
+  hobbies: ["leer", "correr", "programar"],
+  amigos: [
+    { nombre: "Pedro", hobbies: ["fútbol"], amigos: [] },
+    { nombre: "Sofia", hobbies: ["pintar"], amigos: [] }
+  ]
+};
+```
+
+## Uniones de tipos
+
+Cuando una propiedad puede ser de varios tipos:
+
+```typescript
+interface ConfiguracionNotificacion {
+  titulo: string;
+  mensaje: string;
+  tipo: "info" | "warning" | "error"; // Solo estos 3 valores
+  duracion: number | "permanente";    // Número o texto específico
+}
+
+// ✅ Correcto
+const notif1: ConfiguracionNotificacion = {
+  titulo: "Éxito",
+  mensaje: "Operación completada",
+  tipo: "info",
+  duracion: 3000
+};
+
+// ✅ También correcto
+const notif2: ConfiguracionNotificacion = {
+  titulo: "Error crítico",
+  mensaje: "Fallo en el servidor",
+  tipo: "error",
+  duracion: "permanente"
+};
+
+// ❌ Error: "success" no es un tipo válido
+const notif3: ConfiguracionNotificacion = {
+  titulo: "Info",
+  mensaje: "Mensaje",
+  tipo: "success", // Solo puede ser "info", "warning" o "error"
+  duracion: 2000
+};
+```
+
+## Extender interfaces
+
+Puedes crear interfaces que **heredan** de otras:
+
+```typescript
+interface Animal {
+  nombre: string;
+  edad: number;
+}
+
+interface Perro extends Animal {
+  raza: string;
+  ladra: boolean;
+}
+
+interface Gato extends Animal {
+  color: string;
+  ronronea: boolean;
+}
+
+const miPerro: Perro = {
+  nombre: "Max",
+  edad: 3,        // Heredado de Animal
+  raza: "Labrador",
+  ladra: true
+};
+
+const miGato: Gato = {
+  nombre: "Luna",
+  edad: 2,        // Heredado de Animal
+  color: "Negro",
+  ronronea: true
+};
+```
+
+<Info>
+  `extends` es como decir: "Un Perro es un Animal, pero con propiedades adicionales". Evita repetir código.
+</Info>
+
+## Interfaces con funciones
+
+Las interfaces también pueden definir funciones:
+
+```typescript
+interface Calculadora {
+  sumar: (a: number, b: number) => number;
+  restar: (a: number, b: number) => number;
+}
+
+const miCalculadora: Calculadora = {
+  sumar: (a, b) => a + b,
+  restar: (a, b) => a - b
+};
+
+console.log(miCalculadora.sumar(5, 3));  // 8
+console.log(miCalculadora.restar(10, 4)); // 6
+```
+
+## Interfaces vs Types
+
+En TypeScript también existen los `type`. Son muy similares:
+
+```typescript
+// Con interface
+interface Usuario {
+  nombre: string;
+  edad: number;
+}
+
+// Con type
+type Usuario = {
+  nombre: string;
+  edad: number;
+};
+```
+
+<Accordion title="¿Cuándo usar cuál?">
+  **Usa `interface` para**:
+  - Definir la forma de objetos
+  - Cuando necesites extender o implementar
+  - Definición de componentes React
+  
+  **Usa `type` para**:
+  - Uniones complejas: `type Estado = 'activo' | 'inactivo'`
+  - Tipos primitivos con alias: `type ID = string | number`
+  - Cuando combines tipos de formas complejas
+  
+  **En la práctica**: Para componentes React, usa `interface`. Es la convención más común.
+</Accordion>
+
+## Ejemplo completo: E-commerce
+
+```typescript
+interface Imagen {
+  url: string;
+  alt: string;
+}
+
+interface Categoria {
+  id: number;
+  nombre: string;
+}
+
+interface Producto {
+  id: number;
+  nombre: string;
+  descripcion: string;
+  precio: number;
+  descuento?: number;
+  imagenes: Imagen[];
+  categoria: Categoria;
+  enStock: boolean;
+  valoracion: number;
+}
+
+const laptop: Producto = {
+  id: 1,
+  nombre: "Laptop Gaming",
+  descripcion: "Laptop de alto rendimiento para gaming",
+  precio: 1299,
+  descuento: 10, // 10% de descuento
+  imagenes: [
+    { url: "/img/laptop1.jpg", alt: "Vista frontal" },
+    { url: "/img/laptop2.jpg", alt: "Vista lateral" }
+  ],
+  categoria: { id: 2, nombre: "Electrónica" },
+  enStock: true,
+  valoracion: 4.5
+};
+```
+
+## Buenas prácticas
+
+<CardGroup cols={2}>
+  <Card title="Nombres descriptivos" icon="tag">
+    `UsuarioRegistrado` es mejor que `Datos1`
+  </Card>
+  <Card title="Mantén interfaces simples" icon="minimize">
+    Si tiene más de 10 propiedades, considera dividirla
+  </Card>
+  <Card title="Documenta lo no obvio" icon="comment">
+    Usa comentarios para aclarar propiedades complejas
+  </Card>
+  <Card title="Reutiliza interfaces" icon="recycle">
+    Si la misma estructura aparece dos veces, créale una interfaz
+  </Card>
+</CardGroup>
+
+---
+
+## Próximo paso
+
+Ahora que sabes definir la estructura de tus datos con interfaces, es momento de aprender cómo **pasar datos a tus componentes** usando **props**.
+
+<Card title="Aprende sobre Props" icon="right-to-bracket" href="/props">
+  Descubre cómo hacer componentes dinámicos con props →
+</Card>

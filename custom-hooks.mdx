@@ -1,0 +1,588 @@
+---
+title: "Custom Hooks"
+description: "Crea tus propios hooks para reutilizar lógica en toda tu aplicación"
+---
+
+# Custom Hooks: Tu propia magia ✨
+
+Los **custom hooks** son hooks que tú mismo creas para **reutilizar lógica** entre componentes. Son como crear tus propias herramientas especializadas.
+
+## ¿Qué son los custom hooks?
+
+<Info>
+  **Piensa en ello así**: Si los hooks son aplicaciones en tu teléfono, los custom hooks son como **atajos de Siri** que creas tú mismo. Combinas varias acciones en una sola que puedes usar donde quieras.
+</Info>
+
+**Sin custom hook (código repetido):**
+```typescript
+// Componente A
+const [cargando, setCargando] = useState(false);
+const [datos, setDatos] = useState(null);
+useEffect(() => { fetch(url)... }, []);
+
+// Componente B  
+const [cargando, setCargando] = useState(false);
+const [datos, setDatos] = useState(null);
+useEffect(() => { fetch(url)... }, []); // ¡Mismo código!
+```
+
+**Con custom hook (reutilizable):**
+```typescript
+// Componente A
+const { datos, cargando } = useFetch(url);
+
+// Componente B
+const { datos, cargando } = useFetch(url); // ¡Mismo hook!
+```
+
+## Reglas de custom hooks
+
+1. **Nombre con "use"**: Siempre empieza con `use` (useLocalStorage, useFetch, useAuth)
+2. **Puede usar otros hooks**: Combina useState, useEffect, etc.
+3. **Retorna lo que necesites**: Puede ser un valor, objeto, array, función, etc.
+
+## Tu primer custom hook
+
+### Ejemplo: useContador
+
+```typescript
+import { useState } from 'react';
+
+function useContador(inicial: number = 0) {
+  const [cuenta, setCuenta] = useState(inicial);
+  
+  const incrementar = () => setCuenta(cuenta + 1);
+  const decrementar = () => setCuenta(cuenta - 1);
+  const reiniciar = () => setCuenta(inicial);
+  
+  return { cuenta, incrementar, decrementar, reiniciar };
+}
+
+// Uso
+function Componente() {
+  const { cuenta, incrementar, decrementar, reiniciar } = useContador(10);
+  
+  return (
+    <div>
+      <p>Cuenta: {cuenta}</p>
+      <button onClick={incrementar}>+</button>
+      <button onClick={decrementar}>-</button>
+      <button onClick={reiniciar}>Reiniciar</button>
+    </div>
+  );
+}
+```
+
+<Tip>
+  ¿Ves? Encapsulaste toda la lógica del contador en un hook. Ahora puedes usarlo en cualquier componente.
+</Tip>
+
+## Custom hooks útiles
+
+### 1. useFetch: Cargar datos
+
+```typescript
+import { useState, useEffect } from 'react';
+
+interface UseFetchResult<T> {
+  datos: T | null;
+  cargando: boolean;
+  error: Error | null;
+}
+
+function useFetch<T>(url: string): UseFetchResult<T> {
+  const [datos, setDatos] = useState<T | null>(null);
+  const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+  
+  useEffect(() => {
+    setCargando(true);
+    setError(null);
+    
+    fetch(url)
+      .then(res => {
+        if (!res.ok) throw new Error('Error en la petición');
+        return res.json();
+      })
+      .then(data => {
+        setDatos(data);
+        setCargando(false);
+      })
+      .catch(err => {
+        setError(err);
+        setCargando(false);
+      });
+  }, [url]);
+  
+  return { datos, cargando, error };
+}
+
+// Uso
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+}
+
+function PerfilUsuario({ userId }: { userId: number }) {
+  const { datos, cargando, error } = useFetch<Usuario>(
+    `/api/usuarios/${userId}`
+  );
+  
+  if (cargando) return <p>Cargando...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+  if (!datos) return <p>No hay datos</p>;
+  
+  return (
+    <div>
+      <h2>{datos.nombre}</h2>
+      <p>{datos.email}</p>
+    </div>
+  );
+}
+```
+
+### 2. useLocalStorage: Persistir datos
+
+```typescript
+import { useState, useEffect } from 'react';
+
+function useLocalStorage<T>(key: string, valorInicial: T) {
+  // Obtener valor guardado o usar inicial
+  const [valor, setValor] = useState<T>(() => {
+    try {
+      const item = window.localStorage.getItem(key);
+      return item ? JSON.parse(item) : valorInicial;
+    } catch (error) {
+      console.error(error);
+      return valorInicial;
+    }
+  });
+  
+  // Guardar en localStorage cuando cambie
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(key, JSON.stringify(valor));
+    } catch (error) {
+      console.error(error);
+    }
+  }, [key, valor]);
+  
+  return [valor, setValor] as const;
+}
+
+// Uso
+function Preferencias() {
+  const [tema, setTema] = useLocalStorage<'claro' | 'oscuro'>('tema', 'claro');
+  const [idioma, setIdioma] = useLocalStorage('idioma', 'es');
+  
+  return (
+    <div>
+      <button onClick={() => setTema(tema === 'claro' ? 'oscuro' : 'claro')}>
+        Cambiar tema (actual: {tema})
+      </button>
+      <button onClick={() => setIdioma(idioma === 'es' ? 'en' : 'es')}>
+        Cambiar idioma (actual: {idioma})
+      </button>
+    </div>
+  );
+}
+```
+
+<Info>
+  Los datos se guardan automáticamente en el navegador. Si refrescas la página, ¡siguen ahí!
+</Info>
+
+### 3. useToggle: Alternar boolean
+
+```typescript
+import { useState } from 'react';
+
+function useToggle(inicial: boolean = false): [boolean, () => void] {
+  const [valor, setValor] = useState(inicial);
+  
+  const toggle = () => setValor(v => !v);
+  
+  return [valor, toggle];
+}
+
+// Uso
+function Menu() {
+  const [abierto, toggleAbierto] = useToggle(false);
+  const [modoOscuro, toggleModoOscuro] = useToggle(true);
+  
+  return (
+    <div>
+      <button onClick={toggleAbierto}>
+        {abierto ? 'Cerrar' : 'Abrir'} menú
+      </button>
+      {abierto && (
+        <nav>
+          <a href="/">Inicio</a>
+          <a href="/about">Acerca de</a>
+        </nav>
+      )}
+      
+      <button onClick={toggleModoOscuro}>
+        Modo {modoOscuro ? 'oscuro' : 'claro'}
+      </button>
+    </div>
+  );
+}
+```
+
+### 4. useDebounce: Retrasar actualizaciones
+
+Útil para búsquedas en tiempo real (no hacer peticiones en cada tecla).
+
+```typescript
+import { useState, useEffect } from 'react';
+
+function useDebounce<T>(valor: T, delay: number): T {
+  const [valorDebounced, setValorDebounced] = useState(valor);
+  
+  useEffect(() => {
+    // Establecer timeout para actualizar después del delay
+    const handler = setTimeout(() => {
+      setValorDebounced(valor);
+    }, delay);
+    
+    // Limpiar timeout si valor cambia antes del delay
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [valor, delay]);
+  
+  return valorDebounced;
+}
+
+// Uso: Búsqueda con debounce
+function BuscadorProductos() {
+  const [busqueda, setBusqueda] = useState('');
+  const busquedaDebounced = useDebounce(busqueda, 500); // 500ms de retraso
+  const { datos } = useFetch(`/api/productos?q=${busquedaDebounced}`);
+  
+  return (
+    <div>
+      <input
+        value={busqueda}
+        onChange={(e) => setBusqueda(e.target.value)}
+        placeholder="Buscar productos..."
+      />
+      {/* Solo busca después de 500ms sin escribir */}
+      <ul>
+        {datos?.map((producto: any) => (
+          <li key={producto.id}>{producto.nombre}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+<Note>
+  **Debounce** espera a que el usuario deje de escribir antes de hacer la búsqueda. ¡Ahorra recursos!
+</Note>
+
+### 5. useWindowSize: Tamaño de ventana
+
+```typescript
+import { useState, useEffect } from 'react';
+
+interface WindowSize {
+  width: number;
+  height: number;
+}
+
+function useWindowSize(): WindowSize {
+  const [windowSize, setWindowSize] = useState<WindowSize>({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+  
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  
+  return windowSize;
+}
+
+// Uso
+function ResponsiveComponent() {
+  const { width, height } = useWindowSize();
+  
+  return (
+    <div>
+      <p>Ancho: {width}px</p>
+      <p>Alto: {height}px</p>
+      {width < 768 ? (
+        <p>Estás en móvil 📱</p>
+      ) : (
+        <p>Estás en desktop 🖥️</p>
+      )}
+    </div>
+  );
+}
+```
+
+### 6. useForm: Manejar formularios
+
+```typescript
+import { useState, ChangeEvent, FormEvent } from 'react';
+
+function useForm<T extends Record<string, any>>(valoresIniciales: T) {
+  const [valores, setValores] = useState<T>(valoresIniciales);
+  
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setValores({
+      ...valores,
+      [name]: type === 'checkbox' ? checked : value
+    });
+  };
+  
+  const reiniciar = () => setValores(valoresIniciales);
+  
+  return { valores, handleChange, reiniciar };
+}
+
+// Uso
+interface FormularioLogin {
+  email: string;
+  password: string;
+  recordar: boolean;
+}
+
+function LoginForm() {
+  const { valores, handleChange, reiniciar } = useForm<FormularioLogin>({
+    email: '',
+    password: '',
+    recordar: false
+  });
+  
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    console.log('Enviando:', valores);
+    reiniciar();
+  };
+  
+  return (
+    <form onSubmit={handleSubmit}>
+      <input
+        name="email"
+        type="email"
+        value={valores.email}
+        onChange={handleChange}
+        placeholder="Email"
+      />
+      <input
+        name="password"
+        type="password"
+        value={valores.password}
+        onChange={handleChange}
+        placeholder="Contraseña"
+      />
+      <label>
+        <input
+          name="recordar"
+          type="checkbox"
+          checked={valores.recordar}
+          onChange={handleChange}
+        />
+        Recordarme
+      </label>
+      <button type="submit">Iniciar sesión</button>
+    </form>
+  );
+}
+```
+
+### 7. useAsync: Manejar operaciones asíncronas
+
+```typescript
+import { useState, useEffect, useCallback } from 'react';
+
+interface UseAsyncResult<T> {
+  ejecutar: () => Promise<void>;
+  datos: T | null;
+  cargando: boolean;
+  error: Error | null;
+}
+
+function useAsync<T>(
+  asyncFunction: () => Promise<T>,
+  inmediato: boolean = true
+): UseAsyncResult<T> {
+  const [datos, setDatos] = useState<T | null>(null);
+  const [cargando, setCargando] = useState(inmediato);
+  const [error, setError] = useState<Error | null>(null);
+  
+  const ejecutar = useCallback(async () => {
+    setCargando(true);
+    setError(null);
+    
+    try {
+      const resultado = await asyncFunction();
+      setDatos(resultado);
+    } catch (err) {
+      setError(err as Error);
+    } finally {
+      setCargando(false);
+    }
+  }, [asyncFunction]);
+  
+  useEffect(() => {
+    if (inmediato) {
+      ejecutar();
+    }
+  }, [ejecutar, inmediato]);
+  
+  return { ejecutar, datos, cargando, error };
+}
+
+// Uso
+function BotonCargarDatos() {
+  const fetchDatos = () => 
+    fetch('/api/datos').then(res => res.json());
+  
+  const { ejecutar, datos, cargando, error } = useAsync(fetchDatos, false);
+  
+  return (
+    <div>
+      <button onClick={ejecutar} disabled={cargando}>
+        {cargando ? 'Cargando...' : 'Cargar datos'}
+      </button>
+      {error && <p>Error: {error.message}</p>}
+      {datos && <pre>{JSON.stringify(datos, null, 2)}</pre>}
+    </div>
+  );
+}
+```
+
+## Composición de custom hooks
+
+Puedes combinar custom hooks para crear funcionalidades más complejas:
+
+```typescript
+function useUsuarioAutenticado() {
+  const { datos: usuario, cargando } = useFetch<Usuario>('/api/usuario');
+  const [sesionActiva, setSesionActiva] = useLocalStorage('sesion', false);
+  
+  useEffect(() => {
+    if (usuario) {
+      setSesionActiva(true);
+    }
+  }, [usuario, setSesionActiva]);
+  
+  const cerrarSesion = () => {
+    setSesionActiva(false);
+    // Lógica adicional de logout
+  };
+  
+  return { usuario, cargando, sesionActiva, cerrarSesion };
+}
+
+// Uso
+function Header() {
+  const { usuario, cargando, cerrarSesion } = useUsuarioAutenticado();
+  
+  if (cargando) return <p>Cargando...</p>;
+  
+  return (
+    <header>
+      {usuario ? (
+        <>
+          <p>Hola, {usuario.nombre}</p>
+          <button onClick={cerrarSesion}>Cerrar sesión</button>
+        </>
+      ) : (
+        <button>Iniciar sesión</button>
+      )}
+    </header>
+  );
+}
+```
+
+## Mejores prácticas
+
+<CardGroup cols={2}>
+  <Card title="Un propósito claro" icon="bullseye">
+    Cada hook debe hacer una cosa específica
+  </Card>
+  <Card title="Nombre descriptivo" icon="tag">
+    `useProductosEnOferta` es mejor que `useData`
+  </Card>
+  <Card title="Documenta parámetros" icon="book">
+    Explica qué recibe y qué retorna el hook
+  </Card>
+  <Card title="Maneja errores" icon="shield-exclamation">
+    Siempre incluye manejo de errores en operaciones async
+  </Card>
+</CardGroup>
+
+## Estructura de carpetas recomendada
+
+```
+src/
+├── hooks/
+│   ├── useContador.ts
+│   ├── useFetch.ts
+│   ├── useLocalStorage.ts
+│   ├── useDebounce.ts
+│   ├── useForm.ts
+│   └── index.ts  // Re-exporta todos los hooks
+├── components/
+└── App.tsx
+```
+
+```typescript
+// hooks/index.ts
+export { default as useContador } from './useContador';
+export { default as useFetch } from './useFetch';
+export { default as useLocalStorage } from './useLocalStorage';
+export { default as useDebounce } from './useDebounce';
+export { default as useForm } from './useForm';
+```
+
+Importación simplificada:
+```typescript
+import { useFetch, useLocalStorage, useForm } from './hooks';
+```
+
+## Testing de custom hooks
+
+```typescript
+import { renderHook, act } from '@testing-library/react';
+import { useContador } from './useContador';
+
+test('useContador incrementa correctamente', () => {
+  const { result } = renderHook(() => useContador(0));
+  
+  expect(result.current.cuenta).toBe(0);
+  
+  act(() => {
+    result.current.incrementar();
+  });
+  
+  expect(result.current.cuenta).toBe(1);
+});
+```
+
+---
+
+## Próximo paso
+
+Ya dominas los hooks personalizados. Ahora aprende a manejar el **estado global** de tu aplicación de forma simple con **Zustand**.
+
+<Card title="Aprende Zustand" icon="database" href="/zustand">
+  Descubre cómo manejar el estado de forma elegante →
+</Card>

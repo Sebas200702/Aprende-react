@@ -1,0 +1,65 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "Aprende React",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#61dafb",
+    "light": "#61dafb",
+    "dark": "#149eca",
+    "anchors": {
+      "from": "#61dafb",
+      "to": "#149eca"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "GitHub",
+      "url": "https://github.com/Sebas200702/Aprende-react"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Comenzar",
+    "url": "/introduccion"
+  },
+  "tabs": [],
+  "anchors": [
+    {
+      "name": "Documentación",
+      "icon": "book-open-cover",
+      "url": "/introduccion"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Comenzando",
+      "pages": [
+        "introduccion",
+        "que-es-react"
+      ]
+    },
+    {
+      "group": "Fundamentos",
+      "pages": [
+        "componentes",
+        "interfaces",
+        "props",
+        "importar-componentes"
+      ]
+    },
+    {
+      "group": "Estado y Hooks",
+      "pages": [
+        "hooks",
+        "custom-hooks",
+        "zustand"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/Sebas200702/Aprende-react"
+  }
+}

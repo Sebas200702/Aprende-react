@@ -1,0 +1,17 @@
+{
+  "name": "aprende-react-docs",
+  "version": "1.0.0",
+  "description": "Documentación de React desde cero",
+  "scripts": {
+    "dev": "mintlify dev",
+    "install-mintlify": "npm i -g mintlify"
+  },
+  "keywords": [
+    "react",
+    "documentation",
+    "tutorial",
+    "spanish"
+  ],
+  "author": "Sebas200702",
+  "license": "MIT"
+}
