@@ -26,10 +26,10 @@ sumar(10, 20); // 30
 
 Las props funcionan igual en React:
 
-```jsx
-function Saludo(props) {
+```tsx
+const Saludo = (props: { nombre: string }) => {
   return <h1>¡Hola, {props.nombre}!</h1>;
-}
+};
 
 <Saludo nombre="Ana" />    // ¡Hola, Ana!
 <Saludo nombre="Carlos" /> // ¡Hola, Carlos!
@@ -37,15 +37,15 @@ function Saludo(props) {
 
 ## Ejemplo sin props (problema)
 
-```jsx
-function TarjetaProducto() {
+```tsx
+const TarjetaProducto = () => {
   return (
     <div className="tarjeta">
       <h2>Laptop</h2>
       <p>$1,299</p>
     </div>
   );
-}
+};
 
 // Todas las tarjetas son iguales 😢
 <TarjetaProducto />
@@ -55,15 +55,15 @@ function TarjetaProducto() {
 
 ## Ejemplo con props (solución)
 
-```jsx
-function TarjetaProducto(props) {
+```tsx
+const TarjetaProducto = (props: { nombre: string; precio: number }) => {
   return (
     <div className="tarjeta">
       <h2>{props.nombre}</h2>
       <p>${props.precio}</p>
     </div>
   );
-}
+};
 
 // Ahora cada tarjeta es diferente 🎉
 <TarjetaProducto nombre="Laptop" precio={1299} />
@@ -75,26 +75,26 @@ function TarjetaProducto(props) {
 
 En lugar de escribir `props.nombre` y `props.precio` todo el tiempo, puedes "desestructurar":
 
-```jsx
+```tsx
 // ❌ Forma larga
-function TarjetaProducto(props) {
+const TarjetaProducto = (props: { nombre: string; precio: number }) => {
   return (
     <div>
       <h2>{props.nombre}</h2>
       <p>${props.precio}</p>
     </div>
   );
-}
+};
 
 // ✅ Forma corta (más común)
-function TarjetaProducto({ nombre, precio }) {
+const TarjetaProducto = ({ nombre, precio }: { nombre: string; precio: number }) => {
   return (
     <div>
       <h2>{nombre}</h2>
       <p>${precio}</p>
     </div>
   );
-}
+};
 ```
 
 <Tip>
@@ -150,14 +150,14 @@ function TarjetaProducto({ nombre, precio }) {
 
 Aquí es donde las **interfaces** que aprendimos antes se vuelven súper útiles:
 
-```typescript
+```tsx
 interface TarjetaProductoProps {
   nombre: string;
   precio: number;
   enStock: boolean;
 }
 
-function TarjetaProducto({ nombre, precio, enStock }: TarjetaProductoProps) {
+const TarjetaProducto = ({ nombre, precio, enStock }: TarjetaProductoProps) => {
   return (
     <div className="tarjeta">
       <h2>{nombre}</h2>
@@ -165,7 +165,7 @@ function TarjetaProducto({ nombre, precio, enStock }: TarjetaProductoProps) {
       <p>{enStock ? "✅ Disponible" : "❌ Agotado"}</p>
     </div>
   );
-}
+};
 ```
 
 Ahora TypeScript te protege de errores:
@@ -200,14 +200,14 @@ Ahora TypeScript te protege de errores:
 
 Usa `?` para props que no siempre son necesarias:
 
-```typescript
+```tsx
 interface BotonProps {
   texto: string;
   color?: string;      // Opcional
   onClick?: () => void; // Opcional
 }
 
-function Boton({ texto, color = "blue", onClick }: BotonProps) {
+const Boton = ({ texto, color = "blue", onClick }: BotonProps) => {
   return (
     <button 
       style={{ backgroundColor: color }} 
@@ -216,7 +216,7 @@ function Boton({ texto, color = "blue", onClick }: BotonProps) {
       {texto}
     </button>
   );
-}
+};
 
 // ✅ Sin color ni onClick
 <Boton texto="Enviar" />
@@ -232,38 +232,38 @@ function Boton({ texto, color = "blue", onClick }: BotonProps) {
 
 Puedes asignar valores por defecto a las props:
 
-```typescript
+```tsx
 interface TarjetaProps {
   titulo: string;
   subtitulo?: string;
   color?: string;
 }
 
-function Tarjeta({ 
+const Tarjeta = ({ 
   titulo, 
   subtitulo = "Sin subtítulo", 
   color = "white" 
-}: TarjetaProps) {
+}: TarjetaProps) => {
   return (
     <div style={{ backgroundColor: color }}>
       <h2>{titulo}</h2>
       <p>{subtitulo}</p>
     </div>
   );
-}
+};
 ```
 
 ## Children: prop especial
 
 `children` es una prop especial que representa el **contenido entre las etiquetas**:
 
-```typescript
+```tsx
 interface TarjetaProps {
   titulo: string;
   children: React.ReactNode;
 }
 
-function Tarjeta({ titulo, children }: TarjetaProps) {
+const Tarjeta = ({ titulo, children }: TarjetaProps) => {
   return (
     <div className="tarjeta">
       <h2>{titulo}</h2>
@@ -272,7 +272,7 @@ function Tarjeta({ titulo, children }: TarjetaProps) {
       </div>
     </div>
   );
-}
+};
 
 // Uso
 <Tarjeta titulo="Información">
@@ -287,7 +287,7 @@ function Tarjeta({ titulo, children }: TarjetaProps) {
 
 ## Ejemplo cotidiano completo: Lista de contactos
 
-```typescript
+```tsx
 interface Contacto {
   id: number;
   nombre: string;
@@ -302,7 +302,7 @@ interface TarjetaContactoProps {
   onEmail?: (email: string) => void;
 }
 
-function TarjetaContacto({ contacto, onLlamar, onEmail }: TarjetaContactoProps) {
+const TarjetaContacto = ({ contacto, onLlamar, onEmail }: TarjetaContactoProps) => {
   return (
     <div className="contacto">
       {contacto.foto && <img src={contacto.foto} alt={contacto.nombre} />}
@@ -321,10 +321,10 @@ function TarjetaContacto({ contacto, onLlamar, onEmail }: TarjetaContactoProps) 
       )}
     </div>
   );
-}
+};
 
 // Uso
-function App() {
+const App = () => {
   const contacto: Contacto = {
     id: 1,
     nombre: "María García",
@@ -340,20 +340,20 @@ function App() {
       onEmail={(email) => console.log(`Enviando email a ${email}`)}
     />
   );
-}
+};
 ```
 
 ## Props avanzadas
 
 ### 1. Union types
 
-```typescript
+```tsx
 interface AlertaProps {
   mensaje: string;
   tipo: "success" | "error" | "warning" | "info";
 }
 
-function Alerta({ mensaje, tipo }: AlertaProps) {
+const Alerta = ({ mensaje, tipo }: AlertaProps) => {
   const colores = {
     success: "green",
     error: "red",
@@ -366,20 +366,20 @@ function Alerta({ mensaje, tipo }: AlertaProps) {
       {mensaje}
     </div>
   );
-}
+};
 
 <Alerta mensaje="Operación exitosa" tipo="success" />
 ```
 
 ### 2. Callback props con parámetros
 
-```typescript
+```tsx
 interface ListaProductosProps {
   productos: string[];
   onSeleccionar: (producto: string, index: number) => void;
 }
 
-function ListaProductos({ productos, onSeleccionar }: ListaProductosProps) {
+const ListaProductos = ({ productos, onSeleccionar }: ListaProductosProps) => {
   return (
     <ul>
       {productos.map((prod, i) => (
@@ -389,12 +389,12 @@ function ListaProductos({ productos, onSeleccionar }: ListaProductosProps) {
       ))}
     </ul>
   );
-}
+};
 ```
 
 ### 3. Props con objetos complejos
 
-```typescript
+```tsx
 interface Direccion {
   calle: string;
   ciudad: string;
@@ -410,7 +410,7 @@ interface TiendaProps {
   };
 }
 
-function InfoTienda({ nombre, direccion, horarios }: TiendaProps) {
+const InfoTienda = ({ nombre, direccion, horarios }: TiendaProps) => {
   return (
     <div>
       <h2>{nombre}</h2>
@@ -418,23 +418,23 @@ function InfoTienda({ nombre, direccion, horarios }: TiendaProps) {
       <p>Abierto de {horarios.apertura} a {horarios.cierre}</p>
     </div>
   );
-}
+};
 ```
 
 ## Spread operator con props
 
 Puedes pasar todas las propiedades de un objeto como props:
 
-```typescript
+```tsx
 interface BotonProps {
   texto: string;
   color: string;
   onClick: () => void;
 }
 
-function Boton(props: BotonProps) {
+const Boton = (props: BotonProps) => {
   return <button {...props}>{props.texto}</button>;
-}
+};
 
 // Uso
 const propsBoton = {
@@ -467,22 +467,22 @@ const propsBoton = {
 
 ### ❌ Intentar modificar props
 
-```typescript
-function Contador({ cuenta }: { cuenta: number }) {
+```tsx
+const Contador = ({ cuenta }: { cuenta: number }) => {
   // ❌ NO HAGAS ESTO
   cuenta = cuenta + 1; // Error: las props son read-only
   
   return <p>{cuenta}</p>;
-}
+};
 ```
 
 ### ✅ Usa estado en su lugar
 
-```typescript
+```tsx
 import { useState } from 'react';
 
-function Contador({ cuentaInicial }: { cuentaInicial: number }) {
-  const [cuenta, setCuenta] = useState(cuentaInicial);
+const Contador = ({ cuentaInicial }: { cuentaInicial: number }) => {
+  const [cuenta, setCuenta] = useState<number>(cuentaInicial);
   
   return (
     <div>
@@ -490,7 +490,7 @@ function Contador({ cuentaInicial }: { cuentaInicial: number }) {
       <button onClick={() => setCuenta(cuenta + 1)}>+</button>
     </div>
   );
-}
+};
 ```
 
 ## Ejercicio mental 🧠
@@ -498,7 +498,7 @@ function Contador({ cuentaInicial }: { cuentaInicial: number }) {
 ¿Cómo tiparías las props para un componente de tarjeta de crédito que muestre número, titular, fecha de expiración y CVV?
 
 <Accordion title="Ver respuesta sugerida">
-  ```typescript
+  ```tsx
   interface TarjetaCreditoProps {
     numero: string;
     titular: string;
@@ -510,13 +510,13 @@ function Contador({ cuentaInicial }: { cuentaInicial: number }) {
     tipo: "visa" | "mastercard" | "amex";
   }
   
-  function TarjetaCredito({ 
+  const TarjetaCredito = ({ 
     numero, 
     titular, 
     expiracion, 
     cvv, 
     tipo 
-  }: TarjetaCreditoProps) {
+  }: TarjetaCreditoProps) => {
     return (
       <div className="tarjeta">
         <p className="tipo">{tipo}</p>
@@ -526,7 +526,7 @@ function Contador({ cuentaInicial }: { cuentaInicial: number }) {
         <p className="cvv">{cvv}</p>
       </div>
     );
-  }
+  };
   ```
 </Accordion>
 
