@@ -1,0 +1,570 @@
+---
+title: "Hooks"
+description: "Domina los hooks de React para dar superpoderes a tus componentes"
+---
+
+# Hooks: Los superpoderes de React 🪝
+
+Los **hooks** son funciones especiales que te permiten "enganchar" características de React en tus componentes funcionales. Piensa en ellos como **superpoderes** que puedes agregar a tus componentes.
+
+## ¿Qué son los hooks?
+
+<Info>
+  **Piensa en ello así**: Los hooks son como **aplicaciones en tu teléfono**. Tu teléfono básico hace llamadas, pero instalas apps para agregar funcionalidades: cámara, mapas, música. Los hooks agregan funcionalidades a tus componentes.
+</Info>
+
+**Antes de hooks (componentes de clase):**
+```javascript
+// Código complicado y difícil de entender 😢
+class Contador extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { cuenta: 0 };
+  }
+  // ... mucho más código
+}
+```
+
+**Con hooks (componentes funcionales):**
+```javascript
+// Simple y limpio 😊
+function Contador() {
+  const [cuenta, setCuenta] = useState(0);
+  // Eso es todo
+}
+```
+
+## Los hooks más importantes
+
+<CardGroup cols={2}>
+  <Card title="useState" icon="database">
+    Agregar estado (datos que cambian)
+  </Card>
+  <Card title="useEffect" icon="bolt">
+    Ejecutar código cuando algo cambia
+  </Card>
+  <Card title="useContext" icon="share-nodes">
+    Compartir datos sin pasar props
+  </Card>
+  <Card title="useRef" icon="anchor">
+    Referenciar elementos del DOM
+  </Card>
+</CardGroup>
+
+## useState: Recordar información 💾
+
+El hook más usado. Te permite agregar **estado** (datos que pueden cambiar) a tu componente.
+
+### Sintaxis básica
+
+```typescript
+const [valor, setValor] = useState(valorInicial);
+```
+
+- `valor`: El dato actual
+- `setValor`: Función para actualizar el dato
+- `valorInicial`: El valor al iniciar
+
+### Ejemplo: Contador simple
+
+```typescript
+import { useState } from 'react';
+
+function Contador() {
+  const [cuenta, setCuenta] = useState(0);
+  
+  return (
+    <div>
+      <p>Has hecho clic {cuenta} veces</p>
+      <button onClick={() => setCuenta(cuenta + 1)}>
+        Incrementar
+      </button>
+    </div>
+  );
+}
+```
+
+<Tip>
+  Cada vez que llamas a `setCuenta`, React **re-renderiza** el componente con el nuevo valor.
+</Tip>
+
+### useState con diferentes tipos
+
+```typescript
+// Número
+const [edad, setEdad] = useState<number>(25);
+
+// String
+const [nombre, setNombre] = useState<string>('');
+
+// Boolean
+const [activo, setActivo] = useState<boolean>(false);
+
+// Array
+const [tareas, setTareas] = useState<string[]>([]);
+
+// Objeto
+const [usuario, setUsuario] = useState({
+  nombre: 'Ana',
+  edad: 25
+});
+```
+
+### Múltiples estados
+
+```typescript
+function Formulario() {
+  const [nombre, setNombre] = useState('');
+  const [email, setEmail] = useState('');
+  const [edad, setEdad] = useState(0);
+  
+  return (
+    <form>
+      <input 
+        value={nombre} 
+        onChange={(e) => setNombre(e.target.value)} 
+      />
+      <input 
+        value={email} 
+        onChange={(e) => setEmail(e.target.value)} 
+      />
+      <input 
+        type="number"
+        value={edad} 
+        onChange={(e) => setEdad(Number(e.target.value))} 
+      />
+    </form>
+  );
+}
+```
+
+### Actualizar objetos y arrays
+
+```typescript
+// ❌ Incorrecto: mutación directa
+usuario.nombre = 'Pedro'; // No funciona
+setUsuario(usuario);
+
+// ✅ Correcto: crear nuevo objeto
+setUsuario({ ...usuario, nombre: 'Pedro' });
+
+// ✅ Agregar a array
+setTareas([...tareas, 'Nueva tarea']);
+
+// ✅ Eliminar de array
+setTareas(tareas.filter((t, i) => i !== indiceAEliminar));
+
+// ✅ Actualizar elemento en array
+setTareas(tareas.map((t, i) => 
+  i === indice ? 'Tarea actualizada' : t
+));
+```
+
+<Warning>
+  **Importante**: Siempre crea un **nuevo objeto o array** cuando actualices el estado. No modifiques el original.
+</Warning>
+
+## useEffect: Efectos secundarios ⚡
+
+Ejecuta código cuando el componente se monta, actualiza o desmonta.
+
+<Info>
+  **Piensa en ello así**: `useEffect` es como una **alarma** que se activa en ciertos momentos. Tú decides cuándo debe sonar.
+</Info>
+
+### Sintaxis básica
+
+```typescript
+useEffect(() => {
+  // Tu código aquí
+}, [dependencias]);
+```
+
+### Ejemplo: Cargar datos
+
+```typescript
+import { useState, useEffect } from 'react';
+
+function PerfilUsuario({ userId }: { userId: number }) {
+  const [usuario, setUsuario] = useState(null);
+  const [cargando, setCargando] = useState(true);
+  
+  useEffect(() => {
+    // Se ejecuta cuando el componente se monta o userId cambia
+    setCargando(true);
+    
+    fetch(`/api/usuarios/${userId}`)
+      .then(res => res.json())
+      .then(data => {
+        setUsuario(data);
+        setCargando(false);
+      });
+  }, [userId]); // Se ejecuta cuando userId cambia
+  
+  if (cargando) return <p>Cargando...</p>;
+  
+  return <div>{usuario?.nombre}</div>;
+}
+```
+
+### Casos de uso de useEffect
+
+#### 1. Ejecutar solo una vez (al montar)
+
+```typescript
+useEffect(() => {
+  console.log('Componente montado');
+  // Cargar datos iniciales, inicializar servicios, etc.
+}, []); // Array vacío = solo al montar
+```
+
+#### 2. Ejecutar cuando algo cambia
+
+```typescript
+useEffect(() => {
+  console.log(`El contador cambió a ${cuenta}`);
+}, [cuenta]); // Se ejecuta cada vez que 'cuenta' cambia
+```
+
+#### 3. Ejecutar en cada render (no recomendado)
+
+```typescript
+useEffect(() => {
+  console.log('Cada render');
+}); // Sin array de dependencias
+```
+
+#### 4. Cleanup (limpieza)
+
+```typescript
+useEffect(() => {
+  // Suscribirse
+  const interval = setInterval(() => {
+    console.log('Tick');
+  }, 1000);
+  
+  // Cleanup: se ejecuta al desmontar o antes de re-ejecutar
+  return () => {
+    clearInterval(interval);
+    console.log('Limpieza');
+  };
+}, []);
+```
+
+<Note>
+  La función de **cleanup** es importante para evitar memory leaks (fugas de memoria). Úsala para limpiar timers, suscripciones, etc.
+</Note>
+
+### Ejemplo completo: Temporizador
+
+```typescript
+function Temporizador() {
+  const [segundos, setSegundos] = useState(0);
+  const [activo, setActivo] = useState(false);
+  
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    
+    if (activo) {
+      interval = setInterval(() => {
+        setSegundos(s => s + 1);
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activo]);
+  
+  return (
+    <div>
+      <p>Segundos: {segundos}</p>
+      <button onClick={() => setActivo(!activo)}>
+        {activo ? 'Pausar' : 'Iniciar'}
+      </button>
+      <button onClick={() => setSegundos(0)}>
+        Reiniciar
+      </button>
+    </div>
+  );
+}
+```
+
+## useRef: Referencias a elementos 🎯
+
+Crea una referencia mutable que persiste entre renders.
+
+### Uso 1: Acceder al DOM
+
+```typescript
+import { useRef } from 'react';
+
+function InputConFoco() {
+  const inputRef = useRef<HTMLInputElement>(null);
+  
+  const enfocarInput = () => {
+    inputRef.current?.focus();
+  };
+  
+  return (
+    <div>
+      <input ref={inputRef} type="text" />
+      <button onClick={enfocarInput}>Enfocar input</button>
+    </div>
+  );
+}
+```
+
+### Uso 2: Guardar valores que no causan re-render
+
+```typescript
+function Cronometro() {
+  const [tiempo, setTiempo] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  
+  const iniciar = () => {
+    intervalRef.current = setInterval(() => {
+      setTiempo(t => t + 1);
+    }, 1000);
+  };
+  
+  const detener = () => {
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+  };
+  
+  return (
+    <div>
+      <p>Tiempo: {tiempo}s</p>
+      <button onClick={iniciar}>Iniciar</button>
+      <button onClick={detener}>Detener</button>
+    </div>
+  );
+}
+```
+
+<Tip>
+  **useState vs useRef**: 
+  - `useState`: Cambios causan re-render
+  - `useRef`: Cambios NO causan re-render (útil para valores auxiliares)
+</Tip>
+
+## useContext: Compartir datos globalmente 🌐
+
+Evita "prop drilling" (pasar props por muchos niveles).
+
+```typescript
+import { createContext, useContext, useState } from 'react';
+
+// 1. Crear contexto
+interface TemaContextType {
+  tema: 'claro' | 'oscuro';
+  cambiarTema: () => void;
+}
+
+const TemaContext = createContext<TemaContextType | undefined>(undefined);
+
+// 2. Proveedor
+function TemaProvider({ children }: { children: React.ReactNode }) {
+  const [tema, setTema] = useState<'claro' | 'oscuro'>('claro');
+  
+  const cambiarTema = () => {
+    setTema(tema === 'claro' ? 'oscuro' : 'claro');
+  };
+  
+  return (
+    <TemaContext.Provider value={{ tema, cambiarTema }}>
+      {children}
+    </TemaContext.Provider>
+  );
+}
+
+// 3. Hook personalizado para usar el contexto
+function useTema() {
+  const context = useContext(TemaContext);
+  if (!context) {
+    throw new Error('useTema debe usarse dentro de TemaProvider');
+  }
+  return context;
+}
+
+// 4. Uso en componentes
+function Boton() {
+  const { tema, cambiarTema } = useTema();
+  
+  return (
+    <button 
+      onClick={cambiarTema}
+      style={{ 
+        background: tema === 'claro' ? 'white' : 'black',
+        color: tema === 'claro' ? 'black' : 'white'
+      }}
+    >
+      Cambiar a tema {tema === 'claro' ? 'oscuro' : 'claro'}
+    </button>
+  );
+}
+
+// 5. App
+function App() {
+  return (
+    <TemaProvider>
+      <div>
+        <h1>Mi App</h1>
+        <Boton />
+      </div>
+    </TemaProvider>
+  );
+}
+```
+
+## Otros hooks útiles
+
+### useMemo: Memorizar cálculos costosos
+
+```typescript
+import { useMemo } from 'react';
+
+function ListaProductos({ productos }: { productos: Producto[] }) {
+  // Solo recalcula cuando 'productos' cambia
+  const total = useMemo(() => {
+    console.log('Calculando total...');
+    return productos.reduce((sum, p) => sum + p.precio, 0);
+  }, [productos]);
+  
+  return <p>Total: ${total}</p>;
+}
+```
+
+### useCallback: Memorizar funciones
+
+```typescript
+import { useCallback } from 'react';
+
+function ParentComponent() {
+  const [cuenta, setCuenta] = useState(0);
+  
+  // La función se recrea solo si cuenta cambia
+  const incrementar = useCallback(() => {
+    setCuenta(c => c + 1);
+  }, []);
+  
+  return <BotonHijo onClick={incrementar} />;
+}
+```
+
+## Reglas de los hooks
+
+<Warning>
+  **Estas reglas son obligatorias para que React funcione correctamente:**
+</Warning>
+
+1. **Solo en el nivel superior**: No uses hooks dentro de loops, condiciones o funciones anidadas
+
+```typescript
+// ❌ Incorrecto
+if (condicion) {
+  const [estado, setEstado] = useState(0);
+}
+
+// ✅ Correcto
+const [estado, setEstado] = useState(0);
+if (condicion) {
+  // usa el estado aquí
+}
+```
+
+2. **Solo en funciones React**: Usa hooks solo en componentes o custom hooks
+
+```typescript
+// ❌ Incorrecto
+function funcionNormal() {
+  const [estado, setEstado] = useState(0);
+}
+
+// ✅ Correcto
+function Componente() {
+  const [estado, setEstado] = useState(0);
+}
+```
+
+## Ejercicio práctico: Todo List
+
+```typescript
+import { useState } from 'react';
+
+interface Tarea {
+  id: number;
+  texto: string;
+  completada: boolean;
+}
+
+function TodoList() {
+  const [tareas, setTareas] = useState<Tarea[]>([]);
+  const [texto, setTexto] = useState('');
+  
+  const agregarTarea = () => {
+    if (texto.trim()) {
+      setTareas([
+        ...tareas,
+        { id: Date.now(), texto, completada: false }
+      ]);
+      setTexto('');
+    }
+  };
+  
+  const toggleTarea = (id: number) => {
+    setTareas(tareas.map(t => 
+      t.id === id ? { ...t, completada: !t.completada } : t
+    ));
+  };
+  
+  const eliminarTarea = (id: number) => {
+    setTareas(tareas.filter(t => t.id !== id));
+  };
+  
+  return (
+    <div>
+      <h1>Mis Tareas</h1>
+      <input
+        value={texto}
+        onChange={(e) => setTexto(e.target.value)}
+        onKeyPress={(e) => e.key === 'Enter' && agregarTarea()}
+        placeholder="Nueva tarea..."
+      />
+      <button onClick={agregarTarea}>Agregar</button>
+      
+      <ul>
+        {tareas.map(tarea => (
+          <li key={tarea.id}>
+            <input
+              type="checkbox"
+              checked={tarea.completada}
+              onChange={() => toggleTarea(tarea.id)}
+            />
+            <span style={{ 
+              textDecoration: tarea.completada ? 'line-through' : 'none' 
+            }}>
+              {tarea.texto}
+            </span>
+            <button onClick={() => eliminarTarea(tarea.id)}>
+              ❌
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## Próximo paso
+
+Los hooks son poderosos, pero ¿qué tal si creas tus **propios hooks personalizados** para reutilizar lógica? Eso es lo que veremos a continuación.
+
+<Card title="Aprende Custom Hooks" icon="wand-magic-sparkles" href="/custom-hooks">
+  Descubre cómo crear tus propios hooks →
+</Card>

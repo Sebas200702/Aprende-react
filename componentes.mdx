@@ -1,0 +1,332 @@
+---
+title: "Componentes"
+description: "Aprende a crear y usar componentes en React"
+---
+
+# Componentes: Los bloques de construcción 🧱
+
+Si React fuera LEGO, los **componentes serían los bloques individuales** que usas para construir todo. Son la base de cualquier aplicación React.
+
+## ¿Qué es un componente?
+
+Un componente es simplemente una **función de JavaScript que retorna HTML** (bueno, técnicamente JSX, pero actúa como HTML).
+
+<Info>
+  **Piensa en ello así**: Un componente es como una **receta de cocina**. Defines los ingredientes (datos) y los pasos (lógica), y al final obtienes un plato (interfaz visual).
+</Info>
+
+## Tu primer componente
+
+```jsx
+function Boton() {
+  return <button>Haz clic aquí</button>;
+}
+```
+
+¡Eso es todo! Ya creaste un componente. Es:
+- ✅ Una función con nombre en mayúscula
+- ✅ Retorna JSX (código que parece HTML)
+- ✅ Puede ser reutilizado en cualquier lugar
+
+## Usando el componente
+
+Una vez creado, lo usas como si fuera una etiqueta HTML:
+
+```jsx
+function App() {
+  return (
+    <div>
+      <h1>Mi aplicación</h1>
+      <Boton />
+      <Boton />
+      <Boton />
+    </div>
+  );
+}
+```
+
+<Tip>
+  ¿Ves? Escribiste `<Boton />` una vez, ¡pero lo usaste tres veces! Eso es reutilización.
+</Tip>
+
+## Ejemplo cotidiano: Una tarjeta de perfil
+
+Imagina que construyes una red social y necesitas mostrar perfiles de usuarios. Aquí está el componente:
+
+```jsx
+function TarjetaPerfil() {
+  return (
+    <div className="tarjeta">
+      <img src="foto.jpg" alt="Perfil" />
+      <h2>Juan Pérez</h2>
+      <p>Desarrollador Frontend</p>
+      <button>Seguir</button>
+    </div>
+  );
+}
+```
+
+Ahora puedes usarlo para mostrar muchos perfiles:
+
+```jsx
+function ListaPerfiles() {
+  return (
+    <div>
+      <TarjetaPerfil />
+      <TarjetaPerfil />
+      <TarjetaPerfil />
+    </div>
+  );
+}
+```
+
+**El problema**: Todos muestran lo mismo. 🤔
+
+**La solución**: ¡Props! (lo veremos pronto)
+
+## Tipos de componentes
+
+### 1. Componentes funcionales (modernos)
+
+```jsx
+function Saludo() {
+  return <h1>¡Hola!</h1>;
+}
+```
+
+Estos son los que usamos hoy en día. Son **funciones simples**.
+
+### 2. Componentes con lógica
+
+```jsx
+function Contador() {
+  const numero = 5;
+  const doble = numero * 2;
+  
+  return (
+    <div>
+      <p>Número: {numero}</p>
+      <p>El doble: {doble}</p>
+    </div>
+  );
+}
+```
+
+<Note>
+  Puedes tener toda la lógica de JavaScript que necesites antes del `return`.
+</Note>
+
+### 3. Componentes con condicionales
+
+```jsx
+function Mensaje() {
+  const esDeNoche = true;
+  
+  return (
+    <div>
+      {esDeNoche ? <p>🌙 Buenas noches</p> : <p>☀️ Buenos días</p>}
+    </div>
+  );
+}
+```
+
+## Composición de componentes
+
+Puedes **anidar componentes** como matrioshkas (muñecas rusas):
+
+```jsx
+function Avatar() {
+  return <img src="foto.jpg" alt="Avatar" />;
+}
+
+function Nombre() {
+  return <h2>Juan Pérez</h2>;
+}
+
+function TarjetaPerfil() {
+  return (
+    <div>
+      <Avatar />
+      <Nombre />
+      <button>Seguir</button>
+    </div>
+  );
+}
+```
+
+**Ventaja**: Si necesitas cambiar el avatar, solo modificas `Avatar`, y se actualiza en todos lados.
+
+## Reglas de los componentes
+
+<Warning>
+  Estas reglas son importantes para que React funcione correctamente:
+</Warning>
+
+1. **Nombres en mayúscula**: `MiComponente`, no `miComponente`
+2. **Un solo elemento raíz**: Todo debe estar envuelto en un elemento padre
+3. **Return obligatorio**: Debes retornar JSX
+
+### ❌ Incorrecto
+```jsx
+function Malo() {
+  return (
+    <h1>Título</h1>
+    <p>Párrafo</p>  // ¡Error! Dos elementos
+  );
+}
+```
+
+### ✅ Correcto
+```jsx
+function Bueno() {
+  return (
+    <div>
+      <h1>Título</h1>
+      <p>Párrafo</p>
+    </div>
+  );
+}
+```
+
+### ✅ También correcto (usando Fragment)
+```jsx
+function Bueno() {
+  return (
+    <>
+      <h1>Título</h1>
+      <p>Párrafo</p>
+    </>
+  );
+}
+```
+
+<Tip>
+  `<> </>` es un **Fragment**, una forma de agrupar elementos sin agregar un `<div>` extra al HTML.
+</Tip>
+
+## Ejemplo completo: App de tareas
+
+```jsx
+function TareaItem() {
+  return (
+    <div className="tarea">
+      <input type="checkbox" />
+      <span>Comprar leche</span>
+    </div>
+  );
+}
+
+function ListaTareas() {
+  return (
+    <div className="lista">
+      <h1>Mis Tareas</h1>
+      <TareaItem />
+      <TareaItem />
+      <TareaItem />
+    </div>
+  );
+}
+
+function App() {
+  return <ListaTareas />;
+}
+```
+
+**Estructura jerárquica:**
+```
+App
+└── ListaTareas
+    ├── TareaItem
+    ├── TareaItem
+    └── TareaItem
+```
+
+## JSX: HTML dentro de JavaScript
+
+Ese código que parece HTML pero está en JavaScript se llama **JSX**.
+
+### Diferencias clave con HTML:
+
+| HTML | JSX |
+|------|-----|
+| `class` | `className` |
+| `for` | `htmlFor` |
+| Atributos en minúsculas | Atributos en camelCase |
+| `onclick` | `onClick` |
+
+```jsx
+// JSX
+<div className="contenedor">
+  <label htmlFor="nombre">Nombre:</label>
+  <input id="nombre" onClick={miFuncion} />
+</div>
+```
+
+<Note>
+  ¿Por qué `className` en lugar de `class`? Porque `class` es una palabra reservada en JavaScript.
+</Note>
+
+## Expresiones en JSX
+
+Puedes usar **llaves `{}`** para insertar JavaScript:
+
+```jsx
+function Info() {
+  const nombre = "Ana";
+  const edad = 25;
+  const esMayor = edad >= 18;
+  
+  return (
+    <div>
+      <h1>Hola, {nombre}</h1>
+      <p>Tienes {edad} años</p>
+      <p>Estado: {esMayor ? "Mayor de edad" : "Menor de edad"}</p>
+      <p>El doble de tu edad: {edad * 2}</p>
+    </div>
+  );
+}
+```
+
+## Ejercicio mental 🧠
+
+Piensa en una **calculadora**. ¿Cómo la dividirías en componentes?
+
+<Accordion title="Ver respuesta sugerida">
+  ```
+  Calculadora
+  ├── Pantalla (muestra el número)
+  ├── TecladoNumerico
+  │   ├── Boton (0-9)
+  │   └── Boton (operaciones: +, -, *, /)
+  └── BotonIgual (=)
+  ```
+  
+  Cada parte tiene una responsabilidad clara y puede funcionar independientemente.
+</Accordion>
+
+## Buenas prácticas
+
+<CardGroup cols={2}>
+  <Card title="Un componente, una responsabilidad" icon="check">
+    Cada componente debe hacer una cosa específica
+  </Card>
+  <Card title="Nombres descriptivos" icon="tag">
+    `BotonEnviar` es mejor que `Boton1`
+  </Card>
+  <Card title="Mantén componentes pequeños" icon="compress">
+    Si tiene más de 200 líneas, probablemente puedes dividirlo
+  </Card>
+  <Card title="Reutilización" icon="recycle">
+    Si copias y pegas, probablemente necesitas un componente
+  </Card>
+</CardGroup>
+
+---
+
+## Próximo paso
+
+Ya sabes crear componentes, pero ¿cómo los hacemos **dinámicos** y reutilizables de verdad? Necesitas entender las **interfaces** y luego las **props**.
+
+<Card title="Aprende sobre Interfaces" icon="shapes" href="/interfaces">
+  Descubre cómo definir la estructura de tus datos →
+</Card>

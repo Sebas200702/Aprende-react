@@ -1,0 +1,656 @@
+---
+title: "Zustand"
+description: "Manejo de estado global simple y poderoso"
+---
+
+# Zustand: Estado global simplificado 🐻
+
+**Zustand** es una librería minimalista para manejar el estado global de tu aplicación React. Es mucho más simple que Redux y perfecta para comenzar.
+
+## ¿Qué es Zustand?
+
+<Info>
+  **Piensa en ello así**: Zustand es como una **caja fuerte compartida** donde todos los componentes de tu app pueden guardar y consultar información sin necesidad de pasar props por todos lados.
+</Info>
+
+### El problema sin estado global
+
+```typescript
+// ❌ "Prop drilling": pasar datos por muchos niveles
+function App() {
+  const [usuario, setUsuario] = useState(null);
+  return <Nivel1 usuario={usuario} setUsuario={setUsuario} />;
+}
+
+function Nivel1({ usuario, setUsuario }) {
+  return <Nivel2 usuario={usuario} setUsuario={setUsuario} />;
+}
+
+function Nivel2({ usuario, setUsuario }) {
+  return <Nivel3 usuario={usuario} setUsuario={setUsuario} />;
+}
+
+function Nivel3({ usuario, setUsuario }) {
+  // Finalmente usamos el usuario aquí
+  return <p>{usuario?.nombre}</p>;
+}
+```
+
+### La solución con Zustand
+
+```typescript
+// ✅ Cualquier componente accede directamente al estado
+function Nivel3() {
+  const usuario = useUsuarioStore(state => state.usuario);
+  return <p>{usuario?.nombre}</p>;
+}
+```
+
+## Instalación
+
+```bash
+npm install zustand
+# o
+yarn add zustand
+# o
+pnpm add zustand
+```
+
+## Tu primera store
+
+Una **store** es donde guardas tu estado global.
+
+```typescript
+// stores/useContadorStore.ts
+import { create } from 'zustand';
+
+interface ContadorStore {
+  cuenta: number;
+  incrementar: () => void;
+  decrementar: () => void;
+  reiniciar: () => void;
+}
+
+export const useContadorStore = create<ContadorStore>((set) => ({
+  // Estado inicial
+  cuenta: 0,
+  
+  // Acciones para modificar el estado
+  incrementar: () => set((state) => ({ cuenta: state.cuenta + 1 })),
+  decrementar: () => set((state) => ({ cuenta: state.cuenta - 1 })),
+  reiniciar: () => set({ cuenta: 0 }),
+}));
+```
+
+### Usando la store
+
+```typescript
+// components/Contador.tsx
+import { useContadorStore } from '../stores/useContadorStore';
+
+function Contador() {
+  const { cuenta, incrementar, decrementar, reiniciar } = useContadorStore();
+  
+  return (
+    <div>
+      <h2>Contador: {cuenta}</h2>
+      <button onClick={incrementar}>+</button>
+      <button onClick={decrementar}>-</button>
+      <button onClick={reiniciar}>Reiniciar</button>
+    </div>
+  );
+}
+
+// En otro componente
+function MostrarCuenta() {
+  const cuenta = useContadorStore(state => state.cuenta);
+  return <p>La cuenta actual es: {cuenta}</p>;
+}
+```
+
+<Tip>
+  No necesitas providers ni contextos. Solo importa el hook y úsalo. ¡Así de simple!
+</Tip>
+
+## Seleccionar partes del estado
+
+Puedes seleccionar solo lo que necesitas para optimizar renders:
+
+```typescript
+// ✅ Solo se re-renderiza si 'cuenta' cambia
+const cuenta = useContadorStore(state => state.cuenta);
+
+// ❌ Se re-renderiza con cualquier cambio en la store
+const { cuenta, incrementar } = useContadorStore();
+```
+
+## Ejemplo completo: Carrito de compras
+
+```typescript
+// types/index.ts
+export interface Producto {
+  id: number;
+  nombre: string;
+  precio: number;
+  imagen: string;
+}
+
+export interface ItemCarrito {
+  producto: Producto;
+  cantidad: number;
+}
+```
+
+```typescript
+// stores/useCarritoStore.ts
+import { create } from 'zustand';
+import { Producto, ItemCarrito } from '../types';
+
+interface CarritoStore {
+  items: ItemCarrito[];
+  agregarProducto: (producto: Producto) => void;
+  eliminarProducto: (idProducto: number) => void;
+  actualizarCantidad: (idProducto: number, cantidad: number) => void;
+  vaciarCarrito: () => void;
+  total: number;
+}
+
+export const useCarritoStore = create<CarritoStore>((set, get) => ({
+  items: [],
+  
+  agregarProducto: (producto) => set((state) => {
+    const itemExistente = state.items.find(
+      item => item.producto.id === producto.id
+    );
+    
+    if (itemExistente) {
+      // Si ya existe, incrementar cantidad
+      return {
+        items: state.items.map(item =>
+          item.producto.id === producto.id
+            ? { ...item, cantidad: item.cantidad + 1 }
+            : item
+        )
+      };
+    } else {
+      // Si no existe, agregarlo
+      return {
+        items: [...state.items, { producto, cantidad: 1 }]
+      };
+    }
+  }),
+  
+  eliminarProducto: (idProducto) => set((state) => ({
+    items: state.items.filter(item => item.producto.id !== idProducto)
+  })),
+  
+  actualizarCantidad: (idProducto, cantidad) => set((state) => ({
+    items: state.items.map(item =>
+      item.producto.id === idProducto
+        ? { ...item, cantidad }
+        : item
+    )
+  })),
+  
+  vaciarCarrito: () => set({ items: [] }),
+  
+  // Computed value: se calcula automáticamente
+  get total() {
+    return get().items.reduce(
+      (sum, item) => sum + (item.producto.precio * item.cantidad),
+      0
+    );
+  }
+}));
+```
+
+### Componente de producto
+
+```typescript
+// components/TarjetaProducto.tsx
+import { useCarritoStore } from '../stores/useCarritoStore';
+import { Producto } from '../types';
+
+interface Props {
+  producto: Producto;
+}
+
+function TarjetaProducto({ producto }: Props) {
+  const agregarProducto = useCarritoStore(state => state.agregarProducto);
+  
+  return (
+    <div className="tarjeta">
+      <img src={producto.imagen} alt={producto.nombre} />
+      <h3>{producto.nombre}</h3>
+      <p>${producto.precio}</p>
+      <button onClick={() => agregarProducto(producto)}>
+        Agregar al carrito
+      </button>
+    </div>
+  );
+}
+```
+
+### Componente del carrito
+
+```typescript
+// components/Carrito.tsx
+import { useCarritoStore } from '../stores/useCarritoStore';
+
+function Carrito() {
+  const items = useCarritoStore(state => state.items);
+  const total = useCarritoStore(state => state.total);
+  const eliminarProducto = useCarritoStore(state => state.eliminarProducto);
+  const actualizarCantidad = useCarritoStore(state => state.actualizarCantidad);
+  const vaciarCarrito = useCarritoStore(state => state.vaciarCarrito);
+  
+  if (items.length === 0) {
+    return <p>El carrito está vacío</p>;
+  }
+  
+  return (
+    <div>
+      <h2>Carrito de Compras</h2>
+      {items.map(item => (
+        <div key={item.producto.id} className="item-carrito">
+          <img src={item.producto.imagen} alt={item.producto.nombre} />
+          <h4>{item.producto.nombre}</h4>
+          <p>${item.producto.precio}</p>
+          <input
+            type="number"
+            value={item.cantidad}
+            onChange={(e) => actualizarCantidad(
+              item.producto.id,
+              Number(e.target.value)
+            )}
+            min="1"
+          />
+          <button onClick={() => eliminarProducto(item.producto.id)}>
+            Eliminar
+          </button>
+        </div>
+      ))}
+      <div className="total">
+        <h3>Total: ${total.toFixed(2)}</h3>
+        <button onClick={vaciarCarrito}>Vaciar carrito</button>
+      </div>
+    </div>
+  );
+}
+```
+
+## Persistencia con localStorage
+
+Zustand facilita guardar el estado en localStorage:
+
+```typescript
+import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
+
+interface ConfiguracionStore {
+  tema: 'claro' | 'oscuro';
+  idioma: 'es' | 'en';
+  cambiarTema: () => void;
+  cambiarIdioma: (idioma: 'es' | 'en') => void;
+}
+
+export const useConfiguracionStore = create<ConfiguracionStore>()(
+  persist(
+    (set) => ({
+      tema: 'claro',
+      idioma: 'es',
+      cambiarTema: () => set((state) => ({
+        tema: state.tema === 'claro' ? 'oscuro' : 'claro'
+      })),
+      cambiarIdioma: (idioma) => set({ idioma })
+    }),
+    {
+      name: 'configuracion-storage', // Nombre en localStorage
+      storage: createJSONStorage(() => localStorage)
+    }
+  )
+);
+```
+
+<Info>
+  Con `persist`, el estado se guarda automáticamente en localStorage y se recupera al recargar la página. ¡Magia!
+</Info>
+
+## Acciones asíncronas
+
+```typescript
+// stores/useUsuarioStore.ts
+import { create } from 'zustand';
+
+interface Usuario {
+  id: number;
+  nombre: string;
+  email: string;
+}
+
+interface UsuarioStore {
+  usuario: Usuario | null;
+  cargando: boolean;
+  error: string | null;
+  cargarUsuario: (id: number) => Promise<void>;
+  cerrarSesion: () => void;
+}
+
+export const useUsuarioStore = create<UsuarioStore>((set) => ({
+  usuario: null,
+  cargando: false,
+  error: null,
+  
+  cargarUsuario: async (id) => {
+    set({ cargando: true, error: null });
+    
+    try {
+      const response = await fetch(`/api/usuarios/${id}`);
+      if (!response.ok) throw new Error('Error al cargar usuario');
+      
+      const usuario = await response.json();
+      set({ usuario, cargando: false });
+    } catch (error) {
+      set({ 
+        error: error instanceof Error ? error.message : 'Error desconocido',
+        cargando: false 
+      });
+    }
+  },
+  
+  cerrarSesion: () => set({ usuario: null, error: null })
+}));
+```
+
+### Uso con async
+
+```typescript
+function PerfilUsuario() {
+  const { usuario, cargando, error, cargarUsuario } = useUsuarioStore();
+  
+  useEffect(() => {
+    cargarUsuario(123);
+  }, [cargarUsuario]);
+  
+  if (cargando) return <p>Cargando...</p>;
+  if (error) return <p>Error: {error}</p>;
+  if (!usuario) return <p>No hay usuario</p>;
+  
+  return (
+    <div>
+      <h2>{usuario.nombre}</h2>
+      <p>{usuario.email}</p>
+    </div>
+  );
+}
+```
+
+## Múltiples stores
+
+Puedes tener varias stores para diferentes propósitos:
+
+```typescript
+// stores/useAuthStore.ts
+export const useAuthStore = create<AuthStore>((set) => ({
+  usuario: null,
+  login: async (credentials) => { /* ... */ },
+  logout: () => { /* ... */ }
+}));
+
+// stores/useCarritoStore.ts
+export const useCarritoStore = create<CarritoStore>((set) => ({
+  items: [],
+  agregarProducto: (producto) => { /* ... */ }
+}));
+
+// stores/useNotificacionesStore.ts
+export const useNotificacionesStore = create<NotificacionesStore>((set) => ({
+  notificaciones: [],
+  agregar: (mensaje) => { /* ... */ }
+}));
+```
+
+<Tip>
+  **Divide tu estado**: Una store por dominio (auth, carrito, notificaciones, etc.). Es más fácil de mantener.
+</Tip>
+
+## DevTools
+
+Zustand se integra con Redux DevTools:
+
+```typescript
+import { create } from 'zustand';
+import { devtools } from 'zustand/middleware';
+
+export const useStore = create<Store>()(
+  devtools(
+    (set) => ({
+      // tu store aquí
+    }),
+    { name: 'MiStore' }
+  )
+);
+```
+
+## Slices: Organizar stores grandes
+
+Para stores complejas, divide en "slices":
+
+```typescript
+// stores/slices/carritoSlice.ts
+export const createCarritoSlice = (set, get) => ({
+  items: [],
+  agregarProducto: (producto) => set((state) => ({
+    items: [...state.items, { producto, cantidad: 1 }]
+  })),
+  // más acciones...
+});
+
+// stores/slices/usuarioSlice.ts
+export const createUsuarioSlice = (set, get) => ({
+  usuario: null,
+  login: async (credentials) => { /* ... */ },
+  // más acciones...
+});
+
+// stores/useAppStore.ts
+import { create } from 'zustand';
+import { createCarritoSlice } from './slices/carritoSlice';
+import { createUsuarioSlice } from './slices/usuarioSlice';
+
+export const useAppStore = create((set, get) => ({
+  ...createCarritoSlice(set, get),
+  ...createUsuarioSlice(set, get)
+}));
+```
+
+## Zustand vs otras soluciones
+
+| Característica | Zustand | Redux | Context API |
+|---------------|---------|-------|-------------|
+| Configuración | Mínima ⚡ | Compleja 🔧 | Media 📝 |
+| Tamaño | ~1KB 🪶 | ~9KB 📦 | Built-in |
+| Curva de aprendizaje | Fácil 😊 | Difícil 😰 | Media 🤔 |
+| Boilerplate | Casi nada ✨ | Mucho 📄📄📄 | Medio 📄 |
+| Performance | Excelente 🚀 | Buena ✅ | Puede mejorar ⚠️ |
+| DevTools | ✅ | ✅ | ❌ |
+
+<Note>
+  **Zustand es perfecto para**:
+  - Proyectos pequeños a medianos
+  - Equipos que quieren simplicidad
+  - Cuando Redux parece demasiado complejo
+</Note>
+
+## Estructura de carpetas recomendada
+
+```
+src/
+├── stores/
+│   ├── useAuthStore.ts
+│   ├── useCarritoStore.ts
+│   ├── useNotificacionesStore.ts
+│   └── slices/
+│       ├── carritoSlice.ts
+│       └── usuarioSlice.ts
+├── components/
+├── hooks/
+└── App.tsx
+```
+
+## Mejores prácticas
+
+<CardGroup cols={2}>
+  <Card title="Una store por dominio" icon="cube">
+    Separa auth, carrito, notificaciones, etc.
+  </Card>
+  <Card title="Selecciona solo lo necesario" icon="filter">
+    `state => state.usuario` en vez de `state`
+  </Card>
+  <Card title="Acciones descriptivas" icon="tag">
+    `agregarAlCarrito` es mejor que `add`
+  </Card>
+  <Card title="Usa middleware" icon="puzzle-piece">
+    Persist, devtools, immer para facilitar tu vida
+  </Card>
+</CardGroup>
+
+## Ejemplo final: Todo completo
+
+```typescript
+// stores/useTodosStore.ts
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface Todo {
+  id: number;
+  texto: string;
+  completado: boolean;
+  createdAt: Date;
+}
+
+interface TodosStore {
+  todos: Todo[];
+  agregar: (texto: string) => void;
+  toggle: (id: number) => void;
+  eliminar: (id: number) => void;
+  filtro: 'todos' | 'activos' | 'completados';
+  setFiltro: (filtro: 'todos' | 'activos' | 'completados') => void;
+  todosFiltrados: () => Todo[];
+}
+
+export const useTodosStore = create<TodosStore>()(
+  persist(
+    (set, get) => ({
+      todos: [],
+      filtro: 'todos',
+      
+      agregar: (texto) => set((state) => ({
+        todos: [
+          ...state.todos,
+          {
+            id: Date.now(),
+            texto,
+            completado: false,
+            createdAt: new Date()
+          }
+        ]
+      })),
+      
+      toggle: (id) => set((state) => ({
+        todos: state.todos.map(todo =>
+          todo.id === id ? { ...todo, completado: !todo.completado } : todo
+        )
+      })),
+      
+      eliminar: (id) => set((state) => ({
+        todos: state.todos.filter(todo => todo.id !== id)
+      })),
+      
+      setFiltro: (filtro) => set({ filtro }),
+      
+      todosFiltrados: () => {
+        const { todos, filtro } = get();
+        if (filtro === 'activos') return todos.filter(t => !t.completado);
+        if (filtro === 'completados') return todos.filter(t => t.completado);
+        return todos;
+      }
+    }),
+    { name: 'todos-storage' }
+  )
+);
+
+// Componente
+function TodoApp() {
+  const { agregar, toggle, eliminar, filtro, setFiltro, todosFiltrados } = useTodosStore();
+  const [texto, setTexto] = useState('');
+  
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (texto.trim()) {
+      agregar(texto);
+      setTexto('');
+    }
+  };
+  
+  return (
+    <div>
+      <form onSubmit={handleSubmit}>
+        <input
+          value={texto}
+          onChange={(e) => setTexto(e.target.value)}
+          placeholder="Nueva tarea..."
+        />
+        <button>Agregar</button>
+      </form>
+      
+      <div>
+        <button onClick={() => setFiltro('todos')}>Todos</button>
+        <button onClick={() => setFiltro('activos')}>Activos</button>
+        <button onClick={() => setFiltro('completados')}>Completados</button>
+      </div>
+      
+      <ul>
+        {todosFiltrados().map(todo => (
+          <li key={todo.id}>
+            <input
+              type="checkbox"
+              checked={todo.completado}
+              onChange={() => toggle(todo.id)}
+            />
+            <span style={{ 
+              textDecoration: todo.completado ? 'line-through' : 'none' 
+            }}>
+              {todo.texto}
+            </span>
+            <button onClick={() => eliminar(todo.id)}>❌</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+---
+
+## ¡Felicidades! 🎉
+
+Has completado la guía de React. Ahora conoces:
+
+✅ Qué es React y cómo funciona  
+✅ Cómo crear componentes reutilizables  
+✅ Interfaces para tipar tus datos  
+✅ Props para pasar información  
+✅ Organización con imports/exports  
+✅ Hooks para agregar funcionalidad  
+✅ Custom hooks para reutilizar lógica  
+✅ Zustand para estado global  
+
+<Card title="Volver al inicio" icon="house" href="/introduccion">
+  Revisa cualquier tema que necesites repasar →
+</Card>
+
+<Tip>
+  **Próximos pasos**: Practica construyendo proyectos reales. La mejor forma de aprender es haciendo. ¡Éxito! 🚀
+</Tip>

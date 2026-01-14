@@ -1,0 +1,521 @@
+---
+title: "Importar Componentes"
+description: "Aprende a organizar y reutilizar componentes en diferentes archivos"
+---
+
+# Importar y Exportar Componentes 📦
+
+Tener todos tus componentes en un solo archivo es como guardar toda tu ropa en una sola gaveta: un desastre. Necesitas **organizar tu código en archivos separados**.
+
+## ¿Por qué importar/exportar?
+
+<Info>
+  **Piensa en ello así**: Es como organizar tu cocina. Los platos en un estante, los vasos en otro, los cubiertos en su cajón. Todo tiene su lugar y es fácil de encontrar.
+</Info>
+
+**Beneficios:**
+- 📁 **Organización**: Un componente por archivo
+- 🔍 **Fácil de encontrar**: Sabes dónde está cada cosa
+- ♻️ **Reutilización**: Usa el mismo componente en muchos lugares
+- 👥 **Trabajo en equipo**: Varios desarrolladores pueden trabajar sin conflictos
+
+## Estructura básica de carpetas
+
+```
+src/
+├── components/
+│   ├── Boton.tsx
+│   ├── Tarjeta.tsx
+│   └── Header.tsx
+├── pages/
+│   ├── Home.tsx
+│   └── Perfil.tsx
+└── App.tsx
+```
+
+## Export: Compartiendo tu componente
+
+Hay dos formas de exportar: **named export** y **default export**.
+
+### Default Export (Exportación por defecto)
+
+**Un archivo, una exportación principal:**
+
+```typescript
+// components/Boton.tsx
+interface BotonProps {
+  texto: string;
+  onClick: () => void;
+}
+
+function Boton({ texto, onClick }: BotonProps) {
+  return <button onClick={onClick}>{texto}</button>;
+}
+
+export default Boton; // Exportación por defecto
+```
+
+<Tip>
+  Usa **default export** cuando el archivo tiene **un componente principal**. Es lo más común para componentes React.
+</Tip>
+
+### Named Export (Exportación nombrada)
+
+**Un archivo, varias exportaciones:**
+
+```typescript
+// components/Utilidades.tsx
+export function formatearPrecio(precio: number): string {
+  return `$${precio.toFixed(2)}`;
+}
+
+export function formatearFecha(fecha: Date): string {
+  return fecha.toLocaleDateString('es-ES');
+}
+
+export const IVA = 0.16;
+```
+
+## Import: Usando componentes de otros archivos
+
+### Importar Default Export
+
+```typescript
+// App.tsx
+import Boton from './components/Boton';
+
+function App() {
+  return (
+    <div>
+      <h1>Mi App</h1>
+      <Boton texto="Enviar" onClick={() => console.log('Clic')} />
+    </div>
+  );
+}
+
+export default App;
+```
+
+<Note>
+  Con **default export**, puedes importar con cualquier nombre:
+  ```typescript
+  import MiBoton from './components/Boton'; // También funciona
+  ```
+  Pero es mejor usar el nombre original para consistencia.
+</Note>
+
+### Importar Named Exports
+
+```typescript
+// Página.tsx
+import { formatearPrecio, formatearFecha, IVA } from './components/Utilidades';
+
+function Producto() {
+  const precio = 100;
+  const fecha = new Date();
+  
+  return (
+    <div>
+      <p>Precio: {formatearPrecio(precio)}</p>
+      <p>IVA: {IVA * 100}%</p>
+      <p>Fecha: {formatearFecha(fecha)}</p>
+    </div>
+  );
+}
+```
+
+### Importar varios
+
+```typescript
+import { formatearPrecio, formatearFecha } from './Utilidades';
+```
+
+### Importar todo como namespace
+
+```typescript
+import * as Utils from './Utilidades';
+
+Utils.formatearPrecio(100);
+Utils.formatearFecha(new Date());
+console.log(Utils.IVA);
+```
+
+## Ejemplo completo: Tienda online
+
+### Estructura del proyecto
+
+```
+src/
+├── components/
+│   ├── TarjetaProducto.tsx
+│   ├── Carrito.tsx
+│   └── Header.tsx
+├── types/
+│   └── index.ts
+├── utils/
+│   └── formatters.ts
+└── App.tsx
+```
+
+### 1. Definir tipos (types/index.ts)
+
+```typescript
+// types/index.ts
+export interface Producto {
+  id: number;
+  nombre: string;
+  precio: number;
+  imagen: string;
+  enStock: boolean;
+}
+
+export interface ItemCarrito {
+  producto: Producto;
+  cantidad: number;
+}
+```
+
+### 2. Funciones utilitarias (utils/formatters.ts)
+
+```typescript
+// utils/formatters.ts
+export function formatearPrecio(precio: number): string {
+  return new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR'
+  }).format(precio);
+}
+
+export function calcularTotal(items: { precio: number; cantidad: number }[]): number {
+  return items.reduce((total, item) => total + (item.precio * item.cantidad), 0);
+}
+```
+
+### 3. Componente TarjetaProducto
+
+```typescript
+// components/TarjetaProducto.tsx
+import { Producto } from '../types';
+import { formatearPrecio } from '../utils/formatters';
+
+interface TarjetaProductoProps {
+  producto: Producto;
+  onAgregarCarrito: (producto: Producto) => void;
+}
+
+function TarjetaProducto({ producto, onAgregarCarrito }: TarjetaProductoProps) {
+  return (
+    <div className="tarjeta">
+      <img src={producto.imagen} alt={producto.nombre} />
+      <h3>{producto.nombre}</h3>
+      <p>{formatearPrecio(producto.precio)}</p>
+      <p>{producto.enStock ? '✅ Disponible' : '❌ Agotado'}</p>
+      <button 
+        onClick={() => onAgregarCarrito(producto)}
+        disabled={!producto.enStock}
+      >
+        Agregar al carrito
+      </button>
+    </div>
+  );
+}
+
+export default TarjetaProducto;
+```
+
+### 4. Componente Header
+
+```typescript
+// components/Header.tsx
+interface HeaderProps {
+  cantidadItems: number;
+}
+
+function Header({ cantidadItems }: HeaderProps) {
+  return (
+    <header>
+      <h1>Mi Tienda</h1>
+      <div className="carrito">
+        🛒 {cantidadItems} items
+      </div>
+    </header>
+  );
+}
+
+export default Header;
+```
+
+### 5. App principal
+
+```typescript
+// App.tsx
+import { useState } from 'react';
+import Header from './components/Header';
+import TarjetaProducto from './components/TarjetaProducto';
+import { Producto, ItemCarrito } from './types';
+
+function App() {
+  const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
+  
+  const productos: Producto[] = [
+    { id: 1, nombre: 'Laptop', precio: 1299, imagen: '/laptop.jpg', enStock: true },
+    { id: 2, nombre: 'Mouse', precio: 29, imagen: '/mouse.jpg', enStock: true },
+    { id: 3, nombre: 'Teclado', precio: 79, imagen: '/teclado.jpg', enStock: false }
+  ];
+  
+  const agregarAlCarrito = (producto: Producto) => {
+    setCarrito([...carrito, { producto, cantidad: 1 }]);
+  };
+  
+  return (
+    <div>
+      <Header cantidadItems={carrito.length} />
+      <div className="productos">
+        {productos.map(prod => (
+          <TarjetaProducto 
+            key={prod.id}
+            producto={prod}
+            onAgregarCarrito={agregarAlCarrito}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default App;
+```
+
+## Rutas de importación
+
+### Rutas relativas
+
+```typescript
+import Boton from './Boton';           // Mismo directorio
+import Boton from '../Boton';          // Directorio padre
+import Boton from '../../components/Boton'; // Dos niveles arriba
+```
+
+### Rutas absolutas (con alias)
+
+Puedes configurar alias en tu `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "paths": {
+      "@components/*": ["components/*"],
+      "@types/*": ["types/*"],
+      "@utils/*": ["utils/*"]
+    }
+  }
+}
+```
+
+Entonces puedes importar así:
+
+```typescript
+import Boton from '@components/Boton';
+import { Producto } from '@types/index';
+import { formatearPrecio } from '@utils/formatters';
+```
+
+<Tip>
+  Las rutas absolutas con alias hacen tu código más limpio y fácil de refactorizar. No más `../../../`.
+</Tip>
+
+## Exportar múltiples componentes
+
+### Opción 1: Named exports en el mismo archivo
+
+```typescript
+// components/Botones.tsx
+export function BotonPrimario({ texto }: { texto: string }) {
+  return <button className="primario">{texto}</button>;
+}
+
+export function BotonSecundario({ texto }: { texto: string }) {
+  return <button className="secundario">{texto}</button>;
+}
+
+export function BotonPeligro({ texto }: { texto: string }) {
+  return <button className="peligro">{texto}</button>;
+}
+```
+
+Importación:
+```typescript
+import { BotonPrimario, BotonSecundario, BotonPeligro } from './components/Botones';
+```
+
+### Opción 2: Archivo índice (barrel export)
+
+```typescript
+// components/index.ts
+export { default as Boton } from './Boton';
+export { default as Tarjeta } from './Tarjeta';
+export { default as Header } from './Header';
+export { default as Footer } from './Footer';
+```
+
+Importación simplificada:
+```typescript
+import { Boton, Tarjeta, Header, Footer } from './components';
+```
+
+<Note>
+  Los **barrel exports** son útiles cuando tienes muchos componentes y quieres importarlos desde un solo lugar.
+</Note>
+
+## Re-exportar (re-export)
+
+Puedes exportar algo que importaste:
+
+```typescript
+// types/index.ts
+export type { Producto } from './Producto';
+export type { Usuario } from './Usuario';
+export type { Pedido } from './Pedido';
+
+// Ahora puedes importar todo desde un solo lugar:
+import { Producto, Usuario, Pedido } from './types';
+```
+
+## Importar estilos CSS
+
+```typescript
+// components/Boton.tsx
+import './Boton.css'; // CSS específico del componente
+
+function Boton({ texto }: { texto: string }) {
+  return <button>{texto}</button>;
+}
+
+export default Boton;
+```
+
+## Importar imágenes
+
+```typescript
+// components/Logo.tsx
+import logoImg from '../assets/logo.png';
+
+function Logo() {
+  return <img src={logoImg} alt="Logo" />;
+}
+
+export default Logo;
+```
+
+## Lazy loading (carga diferida)
+
+Para componentes grandes que no se usan inmediatamente:
+
+```typescript
+import { lazy, Suspense } from 'react';
+
+// Carga el componente solo cuando se necesita
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+
+function App() {
+  return (
+    <Suspense fallback={<div>Cargando...</div>}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+<Info>
+  **Lazy loading** mejora el rendimiento cargando componentes solo cuando se necesitan, no todo al principio.
+</Info>
+
+## Buenas prácticas
+
+<CardGroup cols={2}>
+  <Card title="Un componente por archivo" icon="file">
+    `Boton.tsx` contiene solo el componente `Boton`
+  </Card>
+  <Card title="Nombres consistentes" icon="equals">
+    Archivo `Boton.tsx` exporta componente `Boton`
+  </Card>
+  <Card title="Agrupa relacionados" icon="folder">
+    Componentes similares en la misma carpeta
+  </Card>
+  <Card title="Usa barrel exports" icon="boxes-stacked">
+    Para simplificar importaciones múltiples
+  </Card>
+</CardGroup>
+
+## Estructura recomendada
+
+```
+src/
+├── components/
+│   ├── common/          # Componentes reutilizables
+│   │   ├── Boton.tsx
+│   │   ├── Input.tsx
+│   │   └── index.ts     # Barrel export
+│   ├── layout/          # Estructura de página
+│   │   ├── Header.tsx
+│   │   ├── Footer.tsx
+│   │   └── Sidebar.tsx
+│   └── features/        # Componentes específicos
+│       ├── auth/
+│       │   ├── LoginForm.tsx
+│       │   └── RegisterForm.tsx
+│       └── products/
+│           ├── ProductCard.tsx
+│           └── ProductList.tsx
+├── hooks/               # Custom hooks
+│   └── useAuth.ts
+├── types/               # Interfaces y types
+│   └── index.ts
+├── utils/               # Funciones utilitarias
+│   └── formatters.ts
+├── styles/              # Estilos globales
+│   └── global.css
+└── App.tsx
+```
+
+## Errores comunes
+
+### ❌ Importación circular
+
+```typescript
+// A.tsx
+import B from './B';
+
+// B.tsx
+import A from './A'; // ¡Círculo vicioso!
+```
+
+**Solución**: Reestructura tu código o usa un archivo intermedio.
+
+### ❌ Extensión incorrecta
+
+```typescript
+import Boton from './Boton.tsx'; // ❌ No incluyas .tsx
+import Boton from './Boton';     // ✅ Correcto
+```
+
+### ❌ Olvidar exportar
+
+```typescript
+// Boton.tsx
+function Boton() {
+  return <button>Clic</button>;
+}
+// ❌ Falta: export default Boton;
+```
+
+---
+
+## Próximo paso
+
+Tu código ya está organizado. Ahora aprende a **manejar el estado de tu aplicación** con Zustand, una librería simple y poderosa.
+
+<Card title="Aprende Zustand" icon="database" href="/zustand">
+  Descubre cómo manejar el estado global →
+</Card>

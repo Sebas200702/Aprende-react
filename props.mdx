@@ -1,0 +1,541 @@
+---
+title: "Props y Tipado"
+description: "Aprende a pasar datos entre componentes y tipar props con TypeScript"
+---
+
+# Props: Pasando información entre componentes 📬
+
+Las **props** (abreviatura de "properties") son como los **argumentos de una función**, pero para componentes. Te permiten pasar información de un componente padre a un componente hijo.
+
+## ¿Qué son las props?
+
+<Info>
+  **Piensa en ello así**: Las props son como los **ingredientes de una receta**. La receta (componente) es siempre la misma, pero los ingredientes (props) pueden cambiar para obtener diferentes resultados.
+</Info>
+
+Imagina una función que suma dos números:
+
+```javascript
+function sumar(a, b) {
+  return a + b;
+}
+
+sumar(2, 3); // 5
+sumar(10, 20); // 30
+```
+
+Las props funcionan igual en React:
+
+```jsx
+function Saludo(props) {
+  return <h1>¡Hola, {props.nombre}!</h1>;
+}
+
+<Saludo nombre="Ana" />    // ¡Hola, Ana!
+<Saludo nombre="Carlos" /> // ¡Hola, Carlos!
+```
+
+## Ejemplo sin props (problema)
+
+```jsx
+function TarjetaProducto() {
+  return (
+    <div className="tarjeta">
+      <h2>Laptop</h2>
+      <p>$1,299</p>
+    </div>
+  );
+}
+
+// Todas las tarjetas son iguales 😢
+<TarjetaProducto />
+<TarjetaProducto />
+<TarjetaProducto />
+```
+
+## Ejemplo con props (solución)
+
+```jsx
+function TarjetaProducto(props) {
+  return (
+    <div className="tarjeta">
+      <h2>{props.nombre}</h2>
+      <p>${props.precio}</p>
+    </div>
+  );
+}
+
+// Ahora cada tarjeta es diferente 🎉
+<TarjetaProducto nombre="Laptop" precio={1299} />
+<TarjetaProducto nombre="Mouse" precio={29} />
+<TarjetaProducto nombre="Teclado" precio={79} />
+```
+
+## Destructuring de props
+
+En lugar de escribir `props.nombre` y `props.precio` todo el tiempo, puedes "desestructurar":
+
+```jsx
+// ❌ Forma larga
+function TarjetaProducto(props) {
+  return (
+    <div>
+      <h2>{props.nombre}</h2>
+      <p>${props.precio}</p>
+    </div>
+  );
+}
+
+// ✅ Forma corta (más común)
+function TarjetaProducto({ nombre, precio }) {
+  return (
+    <div>
+      <h2>{nombre}</h2>
+      <p>${precio}</p>
+    </div>
+  );
+}
+```
+
+<Tip>
+  La desestructuración hace tu código más limpio y fácil de leer. Es la forma preferida en React.
+</Tip>
+
+## Tipos de props
+
+### 1. Texto (string)
+
+```jsx
+<Saludo nombre="María" />
+```
+
+### 2. Números
+
+```jsx
+<Producto precio={99} cantidad={5} />
+```
+
+<Note>
+  Los números van entre **llaves `{}`**, no entre comillas. `precio="99"` sería un string, no un número.
+</Note>
+
+### 3. Booleanos
+
+```jsx
+<Boton activo={true} />
+<Boton activo={false} />
+// Atajo: si solo pones el nombre, es automáticamente true
+<Boton activo />
+```
+
+### 4. Arrays
+
+```jsx
+<ListaTareas tareas={["Comprar", "Estudiar", "Ejercicio"]} />
+```
+
+### 5. Objetos
+
+```jsx
+<Perfil usuario={{ nombre: "Ana", edad: 25 }} />
+```
+
+### 6. Funciones
+
+```jsx
+<Boton onClick={() => alert("Clic")} />
+```
+
+## Tipando props con TypeScript
+
+Aquí es donde las **interfaces** que aprendimos antes se vuelven súper útiles:
+
+```typescript
+interface TarjetaProductoProps {
+  nombre: string;
+  precio: number;
+  enStock: boolean;
+}
+
+function TarjetaProducto({ nombre, precio, enStock }: TarjetaProductoProps) {
+  return (
+    <div className="tarjeta">
+      <h2>{nombre}</h2>
+      <p>${precio}</p>
+      <p>{enStock ? "✅ Disponible" : "❌ Agotado"}</p>
+    </div>
+  );
+}
+```
+
+Ahora TypeScript te protege de errores:
+
+```tsx
+// ✅ Correcto
+<TarjetaProducto 
+  nombre="Laptop" 
+  precio={1299} 
+  enStock={true} 
+/>
+
+// ❌ Error: falta 'enStock'
+<TarjetaProducto 
+  nombre="Mouse" 
+  precio={29} 
+/>
+
+// ❌ Error: 'precio' debe ser número
+<TarjetaProducto 
+  nombre="Teclado" 
+  precio="79 dólares" 
+  enStock={true} 
+/>
+```
+
+<Warning>
+  TypeScript detecta estos errores **antes de ejecutar el código**, ahorrándote horas de debugging.
+</Warning>
+
+## Props opcionales
+
+Usa `?` para props que no siempre son necesarias:
+
+```typescript
+interface BotonProps {
+  texto: string;
+  color?: string;      // Opcional
+  onClick?: () => void; // Opcional
+}
+
+function Boton({ texto, color = "blue", onClick }: BotonProps) {
+  return (
+    <button 
+      style={{ backgroundColor: color }} 
+      onClick={onClick}
+    >
+      {texto}
+    </button>
+  );
+}
+
+// ✅ Sin color ni onClick
+<Boton texto="Enviar" />
+
+// ✅ Con color personalizado
+<Boton texto="Cancelar" color="red" />
+
+// ✅ Con función onClick
+<Boton texto="Guardar" onClick={() => console.log("Guardado")} />
+```
+
+## Valores por defecto
+
+Puedes asignar valores por defecto a las props:
+
+```typescript
+interface TarjetaProps {
+  titulo: string;
+  subtitulo?: string;
+  color?: string;
+}
+
+function Tarjeta({ 
+  titulo, 
+  subtitulo = "Sin subtítulo", 
+  color = "white" 
+}: TarjetaProps) {
+  return (
+    <div style={{ backgroundColor: color }}>
+      <h2>{titulo}</h2>
+      <p>{subtitulo}</p>
+    </div>
+  );
+}
+```
+
+## Children: prop especial
+
+`children` es una prop especial que representa el **contenido entre las etiquetas**:
+
+```typescript
+interface TarjetaProps {
+  titulo: string;
+  children: React.ReactNode;
+}
+
+function Tarjeta({ titulo, children }: TarjetaProps) {
+  return (
+    <div className="tarjeta">
+      <h2>{titulo}</h2>
+      <div className="contenido">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Uso
+<Tarjeta titulo="Información">
+  <p>Este es el contenido de la tarjeta.</p>
+  <button>Leer más</button>
+</Tarjeta>
+```
+
+<Info>
+  `children` es como el "relleno" de un sándwich. La tarjeta es el pan, y tú decides qué poner en medio.
+</Info>
+
+## Ejemplo cotidiano completo: Lista de contactos
+
+```typescript
+interface Contacto {
+  id: number;
+  nombre: string;
+  telefono: string;
+  email?: string;
+  foto?: string;
+}
+
+interface TarjetaContactoProps {
+  contacto: Contacto;
+  onLlamar: (telefono: string) => void;
+  onEmail?: (email: string) => void;
+}
+
+function TarjetaContacto({ contacto, onLlamar, onEmail }: TarjetaContactoProps) {
+  return (
+    <div className="contacto">
+      {contacto.foto && <img src={contacto.foto} alt={contacto.nombre} />}
+      <h3>{contacto.nombre}</h3>
+      <p>{contacto.telefono}</p>
+      {contacto.email && <p>{contacto.email}</p>}
+      
+      <button onClick={() => onLlamar(contacto.telefono)}>
+        📞 Llamar
+      </button>
+      
+      {contacto.email && onEmail && (
+        <button onClick={() => onEmail(contacto.email!)}>
+          📧 Enviar email
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Uso
+function App() {
+  const contacto: Contacto = {
+    id: 1,
+    nombre: "María García",
+    telefono: "555-1234",
+    email: "maria@email.com",
+    foto: "/avatars/maria.jpg"
+  };
+  
+  return (
+    <TarjetaContacto 
+      contacto={contacto}
+      onLlamar={(tel) => console.log(`Llamando a ${tel}`)}
+      onEmail={(email) => console.log(`Enviando email a ${email}`)}
+    />
+  );
+}
+```
+
+## Props avanzadas
+
+### 1. Union types
+
+```typescript
+interface AlertaProps {
+  mensaje: string;
+  tipo: "success" | "error" | "warning" | "info";
+}
+
+function Alerta({ mensaje, tipo }: AlertaProps) {
+  const colores = {
+    success: "green",
+    error: "red",
+    warning: "orange",
+    info: "blue"
+  };
+  
+  return (
+    <div style={{ backgroundColor: colores[tipo] }}>
+      {mensaje}
+    </div>
+  );
+}
+
+<Alerta mensaje="Operación exitosa" tipo="success" />
+```
+
+### 2. Callback props con parámetros
+
+```typescript
+interface ListaProductosProps {
+  productos: string[];
+  onSeleccionar: (producto: string, index: number) => void;
+}
+
+function ListaProductos({ productos, onSeleccionar }: ListaProductosProps) {
+  return (
+    <ul>
+      {productos.map((prod, i) => (
+        <li key={i} onClick={() => onSeleccionar(prod, i)}>
+          {prod}
+        </li>
+      ))}
+    </ul>
+  );
+}
+```
+
+### 3. Props con objetos complejos
+
+```typescript
+interface Direccion {
+  calle: string;
+  ciudad: string;
+  pais: string;
+}
+
+interface TiendaProps {
+  nombre: string;
+  direccion: Direccion;
+  horarios: {
+    apertura: string;
+    cierre: string;
+  };
+}
+
+function InfoTienda({ nombre, direccion, horarios }: TiendaProps) {
+  return (
+    <div>
+      <h2>{nombre}</h2>
+      <p>{direccion.calle}, {direccion.ciudad}, {direccion.pais}</p>
+      <p>Abierto de {horarios.apertura} a {horarios.cierre}</p>
+    </div>
+  );
+}
+```
+
+## Spread operator con props
+
+Puedes pasar todas las propiedades de un objeto como props:
+
+```typescript
+interface BotonProps {
+  texto: string;
+  color: string;
+  onClick: () => void;
+}
+
+function Boton(props: BotonProps) {
+  return <button {...props}>{props.texto}</button>;
+}
+
+// Uso
+const propsBoton = {
+  texto: "Guardar",
+  color: "blue",
+  onClick: () => console.log("Guardado")
+};
+
+<Boton {...propsBoton} />
+```
+
+## Reglas importantes
+
+<CardGroup cols={2}>
+  <Card title="Las props son inmutables" icon="lock">
+    No puedes modificar las props dentro del componente
+  </Card>
+  <Card title="Flujo unidireccional" icon="arrow-down">
+    Las props fluyen de padres a hijos, nunca al revés
+  </Card>
+  <Card title="Siempre tipa tus props" icon="shield-check">
+    En TypeScript, siempre define interfaces para tus props
+  </Card>
+  <Card title="Nombres descriptivos" icon="tag">
+    `onUsuarioSeleccionado` es mejor que `onClick`
+  </Card>
+</CardGroup>
+
+## Errores comunes
+
+### ❌ Intentar modificar props
+
+```typescript
+function Contador({ cuenta }: { cuenta: number }) {
+  // ❌ NO HAGAS ESTO
+  cuenta = cuenta + 1; // Error: las props son read-only
+  
+  return <p>{cuenta}</p>;
+}
+```
+
+### ✅ Usa estado en su lugar
+
+```typescript
+import { useState } from 'react';
+
+function Contador({ cuentaInicial }: { cuentaInicial: number }) {
+  const [cuenta, setCuenta] = useState(cuentaInicial);
+  
+  return (
+    <div>
+      <p>{cuenta}</p>
+      <button onClick={() => setCuenta(cuenta + 1)}>+</button>
+    </div>
+  );
+}
+```
+
+## Ejercicio mental 🧠
+
+¿Cómo tiparías las props para un componente de tarjeta de crédito que muestre número, titular, fecha de expiración y CVV?
+
+<Accordion title="Ver respuesta sugerida">
+  ```typescript
+  interface TarjetaCreditoProps {
+    numero: string;
+    titular: string;
+    expiracion: {
+      mes: number;
+      anio: number;
+    };
+    cvv: string;
+    tipo: "visa" | "mastercard" | "amex";
+  }
+  
+  function TarjetaCredito({ 
+    numero, 
+    titular, 
+    expiracion, 
+    cvv, 
+    tipo 
+  }: TarjetaCreditoProps) {
+    return (
+      <div className="tarjeta">
+        <p className="tipo">{tipo}</p>
+        <p className="numero">{numero}</p>
+        <p className="titular">{titular}</p>
+        <p className="expiracion">{expiracion.mes}/{expiracion.anio}</p>
+        <p className="cvv">{cvv}</p>
+      </div>
+    );
+  }
+  ```
+</Accordion>
+
+---
+
+## Próximo paso
+
+Ya sabes pasar datos a tus componentes con props. Ahora aprende cómo **organizar tu código** importando y exportando componentes.
+
+<Card title="Aprende a Importar Componentes" icon="file-import" href="/importar-componentes">
+  Descubre cómo estructurar tu proyecto →
+</Card>

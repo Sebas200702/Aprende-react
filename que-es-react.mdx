@@ -1,0 +1,135 @@
+---
+title: "¿Qué es React?"
+description: "Entiende React de forma simple con ejemplos cotidianos"
+---
+
+# ¿Qué es React? ⚛️
+
+Imagina que estás construyendo una casa con **bloques de LEGO**. En lugar de tener que moldear cada pieza desde cero, usas bloques pre-fabricados que puedes combinar de mil formas diferentes. **React es exactamente eso, pero para páginas web**.
+
+## La explicación simple
+
+React es una **biblioteca de JavaScript** creada por Facebook que te permite construir interfaces de usuario (lo que ves en una página web) usando **componentes reutilizables**.
+
+<Info>
+  **En otras palabras**: React te ayuda a crear páginas web dividiendo la interfaz en piezas pequeñas y manejables, como armar un rompecabezas.
+</Info>
+
+## ¿Por qué usar React?
+
+### 1. 🧩 Todo son componentes
+En lugar de tener un archivo HTML gigante, divides tu página en piezas pequeñas (componentes) que puedes reutilizar.
+
+**Ejemplo cotidiano:**
+Piensa en una **calculadora**. Tiene botones, una pantalla, y quizás un historial. En React, cada parte sería un componente:
+- `Boton` (lo usas para cada número y operación)
+- `Pantalla` (muestra el resultado)
+- `Historial` (lista de operaciones anteriores)
+
+### 2. 🔄 Actualizaciones automáticas
+React actualiza automáticamente solo las partes de la página que cambiaron, sin recargar todo.
+
+**Ejemplo cotidiano:**
+Es como tu refrigerador con luz interior. Solo se enciende cuando abres la puerta, no está encendida todo el tiempo. React solo "enciende" (actualiza) lo necesario.
+
+### 3. 💪 Mantenimiento fácil
+Si un botón falla, sabes exactamente dónde está el problema: en el componente `Boton`.
+
+## Un ejemplo visual
+
+Imagina que Netflix fuera una aplicación React (que lo es):
+
+```
+Página de Netflix
+├── Header (Logo, búsqueda, perfil)
+├── Banner principal (película destacada)
+├── Lista de películas
+│   ├── Película individual
+│   ├── Película individual
+│   └── Película individual
+└── Footer (enlaces, info)
+```
+
+Cada parte (Header, Banner, Película) es un componente que puedes:
+- Usar en diferentes páginas
+- Actualizar sin afectar el resto
+- Reutilizar cuantas veces quieras
+
+## React vs JavaScript tradicional
+
+### Sin React (JavaScript tradicional)
+```javascript
+// Tienes que manipular el HTML manualmente
+document.getElementById('nombre').innerHTML = 'Juan';
+document.getElementById('edad').innerHTML = '25';
+// Si algo cambia, debes buscar cada elemento y actualizarlo
+```
+
+### Con React
+```javascript
+// React actualiza automáticamente cuando los datos cambian
+const usuario = { nombre: 'Juan', edad: 25 };
+// React se encarga de mostrar estos datos
+```
+
+<Tip>
+  Con React, tú te enfocas en **qué quieres mostrar**, y React se encarga de **cómo mostrarlo** en la página.
+</Tip>
+
+## Conceptos clave para recordar
+
+<CardGroup cols={2}>
+  <Card title="Componentes" icon="cubes">
+    Piezas reutilizables de tu interfaz, como bloques de LEGO
+  </Card>
+  <Card title="Virtual DOM" icon="layer-group">
+    React crea una copia virtual de tu página para actualizarla más rápido
+  </Card>
+  <Card title="Declarativo" icon="code">
+    Describes cómo debe verse tu interfaz, React hace el trabajo pesado
+  </Card>
+  <Card title="Unidireccional" icon="arrow-down">
+    Los datos fluyen en una sola dirección (de padres a hijos)
+  </Card>
+</CardGroup>
+
+## Tu primer "Hola Mundo" en React
+
+```jsx
+function Saludo() {
+  return <h1>¡Hola, mundo!</h1>;
+}
+```
+
+Eso es todo. Una función que retorna lo que quieres ver en pantalla. **Simple, ¿verdad?**
+
+<Note>
+  No te preocupes si ves código que parece HTML dentro de JavaScript (JSX). Lo explicaremos en las siguientes secciones.
+</Note>
+
+## ¿Cuándo usar React?
+
+✅ **Úsalo cuando:**
+- Construyes aplicaciones web con muchas interacciones
+- Necesitas reutilizar componentes en diferentes partes
+- Quieres una aplicación rápida y eficiente
+- Trabajas en equipo (es más fácil colaborar)
+
+❌ **No lo necesitas para:**
+- Una página web simple sin interacciones
+- Un blog estático básico
+- Un sitio con solo HTML y CSS
+
+---
+
+## Próximo paso
+
+Ahora que entiendes qué es React, es hora de aprender sobre su concepto más importante: **los componentes**.
+
+<Card title="Aprende sobre Componentes" icon="cube" href="/componentes">
+  Descubre cómo crear tus primeros componentes →
+</Card>
+
+<Warning>
+  **Recuerda**: No necesitas entender todo perfectamente ahora. Los conceptos se irán aclarando a medida que practiques.
+</Warning>
