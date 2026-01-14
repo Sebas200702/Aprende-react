@@ -14,20 +14,20 @@ Los **custom hooks** son hooks que tú mismo creas para **reutilizar lógica** e
 </Info>
 
 **Sin custom hook (código repetido):**
-```typescript
+```tsx
 // Componente A
-const [cargando, setCargando] = useState(false);
+const [cargando, setCargando] = useState<boolean>(false);
 const [datos, setDatos] = useState(null);
 useEffect(() => { fetch(url)... }, []);
 
 // Componente B  
-const [cargando, setCargando] = useState(false);
+const [cargando, setCargando] = useState<boolean>(false);
 const [datos, setDatos] = useState(null);
 useEffect(() => { fetch(url)... }, []); // ¡Mismo código!
 ```
 
 **Con custom hook (reutilizable):**
-```typescript
+```tsx
 // Componente A
 const { datos, cargando } = useFetch(url);
 
@@ -45,21 +45,21 @@ const { datos, cargando } = useFetch(url); // ¡Mismo hook!
 
 ### Ejemplo: useContador
 
-```typescript
+```tsx
 import { useState } from 'react';
 
-function useContador(inicial: number = 0) {
-  const [cuenta, setCuenta] = useState(inicial);
+const useContador = (inicial: number = 0) => {
+  const [cuenta, setCuenta] = useState<number>(inicial);
   
   const incrementar = () => setCuenta(cuenta + 1);
   const decrementar = () => setCuenta(cuenta - 1);
   const reiniciar = () => setCuenta(inicial);
   
   return { cuenta, incrementar, decrementar, reiniciar };
-}
+};
 
 // Uso
-function Componente() {
+const Componente = () => {
   const { cuenta, incrementar, decrementar, reiniciar } = useContador(10);
   
   return (
@@ -70,7 +70,7 @@ function Componente() {
       <button onClick={reiniciar}>Reiniciar</button>
     </div>
   );
-}
+};
 ```
 
 <Tip>
@@ -81,7 +81,7 @@ function Componente() {
 
 ### 1. useFetch: Cargar datos
 
-```typescript
+```tsx
 import { useState, useEffect } from 'react';
 
 interface UseFetchResult<T> {
@@ -90,9 +90,9 @@ interface UseFetchResult<T> {
   error: Error | null;
 }
 
-function useFetch<T>(url: string): UseFetchResult<T> {
+const useFetch = <T,>(url: string): UseFetchResult<T> => {
   const [datos, setDatos] = useState<T | null>(null);
-  const [cargando, setCargando] = useState(true);
+  const [cargando, setCargando] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   
   useEffect(() => {
@@ -115,7 +115,7 @@ function useFetch<T>(url: string): UseFetchResult<T> {
   }, [url]);
   
   return { datos, cargando, error };
-}
+};
 
 // Uso
 interface Usuario {
@@ -124,7 +124,7 @@ interface Usuario {
   email: string;
 }
 
-function PerfilUsuario({ userId }: { userId: number }) {
+const PerfilUsuario = ({ userId }: { userId: number }) => {
   const { datos, cargando, error } = useFetch<Usuario>(
     `/api/usuarios/${userId}`
   );
@@ -139,15 +139,15 @@ function PerfilUsuario({ userId }: { userId: number }) {
       <p>{datos.email}</p>
     </div>
   );
-}
+};
 ```
 
 ### 2. useLocalStorage: Persistir datos
 
-```typescript
+```tsx
 import { useState, useEffect } from 'react';
 
-function useLocalStorage<T>(key: string, valorInicial: T) {
+const useLocalStorage = <T,>(key: string, valorInicial: T) => {
   // Obtener valor guardado o usar inicial
   const [valor, setValor] = useState<T>(() => {
     try {
@@ -169,12 +169,12 @@ function useLocalStorage<T>(key: string, valorInicial: T) {
   }, [key, valor]);
   
   return [valor, setValor] as const;
-}
+};
 
 // Uso
-function Preferencias() {
+const Preferencias = () => {
   const [tema, setTema] = useLocalStorage<'claro' | 'oscuro'>('tema', 'claro');
-  const [idioma, setIdioma] = useLocalStorage('idioma', 'es');
+  const [idioma, setIdioma] = useLocalStorage<string>('idioma', 'es');
   
   return (
     <div>
@@ -186,7 +186,7 @@ function Preferencias() {
       </button>
     </div>
   );
-}
+};
 ```
 
 <Info>
@@ -195,19 +195,19 @@ function Preferencias() {
 
 ### 3. useToggle: Alternar boolean
 
-```typescript
+```tsx
 import { useState } from 'react';
 
-function useToggle(inicial: boolean = false): [boolean, () => void] {
-  const [valor, setValor] = useState(inicial);
+const useToggle = (inicial: boolean = false): [boolean, () => void] => {
+  const [valor, setValor] = useState<boolean>(inicial);
   
   const toggle = () => setValor(v => !v);
   
   return [valor, toggle];
-}
+};
 
 // Uso
-function Menu() {
+const Menu = () => {
   const [abierto, toggleAbierto] = useToggle(false);
   const [modoOscuro, toggleModoOscuro] = useToggle(true);
   
@@ -228,18 +228,18 @@ function Menu() {
       </button>
     </div>
   );
-}
+};
 ```
 
 ### 4. useDebounce: Retrasar actualizaciones
 
 Útil para búsquedas en tiempo real (no hacer peticiones en cada tecla).
 
-```typescript
+```tsx
 import { useState, useEffect } from 'react';
 
-function useDebounce<T>(valor: T, delay: number): T {
-  const [valorDebounced, setValorDebounced] = useState(valor);
+const useDebounce = <T,>(valor: T, delay: number): T => {
+  const [valorDebounced, setValorDebounced] = useState<T>(valor);
   
   useEffect(() => {
     // Establecer timeout para actualizar después del delay
@@ -254,11 +254,11 @@ function useDebounce<T>(valor: T, delay: number): T {
   }, [valor, delay]);
   
   return valorDebounced;
-}
+};
 
 // Uso: Búsqueda con debounce
-function BuscadorProductos() {
-  const [busqueda, setBusqueda] = useState('');
+const BuscadorProductos = () => {
+  const [busqueda, setBusqueda] = useState<string>('');
   const busquedaDebounced = useDebounce(busqueda, 500); // 500ms de retraso
   const { datos } = useFetch(`/api/productos?q=${busquedaDebounced}`);
   
@@ -277,7 +277,7 @@ function BuscadorProductos() {
       </ul>
     </div>
   );
-}
+};
 ```
 
 <Note>
@@ -286,7 +286,7 @@ function BuscadorProductos() {
 
 ### 5. useWindowSize: Tamaño de ventana
 
-```typescript
+```tsx
 import { useState, useEffect } from 'react';
 
 interface WindowSize {
@@ -294,7 +294,7 @@ interface WindowSize {
   height: number;
 }
 
-function useWindowSize(): WindowSize {
+const useWindowSize = (): WindowSize => {
   const [windowSize, setWindowSize] = useState<WindowSize>({
     width: window.innerWidth,
     height: window.innerHeight,
@@ -314,10 +314,10 @@ function useWindowSize(): WindowSize {
   }, []);
   
   return windowSize;
-}
+};
 
 // Uso
-function ResponsiveComponent() {
+const ResponsiveComponent = () => {
   const { width, height } = useWindowSize();
   
   return (
@@ -331,15 +331,15 @@ function ResponsiveComponent() {
       )}
     </div>
   );
-}
+};
 ```
 
 ### 6. useForm: Manejar formularios
 
-```typescript
+```tsx
 import { useState, ChangeEvent, FormEvent } from 'react';
 
-function useForm<T extends Record<string, any>>(valoresIniciales: T) {
+const useForm = <T extends Record<string, any>>(valoresIniciales: T) => {
   const [valores, setValores] = useState<T>(valoresIniciales);
   
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -353,7 +353,7 @@ function useForm<T extends Record<string, any>>(valoresIniciales: T) {
   const reiniciar = () => setValores(valoresIniciales);
   
   return { valores, handleChange, reiniciar };
-}
+};
 
 // Uso
 interface FormularioLogin {
@@ -362,7 +362,7 @@ interface FormularioLogin {
   recordar: boolean;
 }
 
-function LoginForm() {
+const LoginForm = () => {
   const { valores, handleChange, reiniciar } = useForm<FormularioLogin>({
     email: '',
     password: '',
@@ -403,12 +403,12 @@ function LoginForm() {
       <button type="submit">Iniciar sesión</button>
     </form>
   );
-}
+};
 ```
 
 ### 7. useAsync: Manejar operaciones asíncronas
 
-```typescript
+```tsx
 import { useState, useEffect, useCallback } from 'react';
 
 interface UseAsyncResult<T> {
@@ -418,12 +418,12 @@ interface UseAsyncResult<T> {
   error: Error | null;
 }
 
-function useAsync<T>(
+const useAsync = <T,>(
   asyncFunction: () => Promise<T>,
   inmediato: boolean = true
-): UseAsyncResult<T> {
+): UseAsyncResult<T> => {
   const [datos, setDatos] = useState<T | null>(null);
-  const [cargando, setCargando] = useState(inmediato);
+  const [cargando, setCargando] = useState<boolean>(inmediato);
   const [error, setError] = useState<Error | null>(null);
   
   const ejecutar = useCallback(async () => {
@@ -447,10 +447,10 @@ function useAsync<T>(
   }, [ejecutar, inmediato]);
   
   return { ejecutar, datos, cargando, error };
-}
+};
 
 // Uso
-function BotonCargarDatos() {
+const BotonCargarDatos = () => {
   const fetchDatos = () => 
     fetch('/api/datos').then(res => res.json());
   
@@ -465,17 +465,21 @@ function BotonCargarDatos() {
       {datos && <pre>{JSON.stringify(datos, null, 2)}</pre>}
     </div>
   );
-}
+};
 ```
 
 ## Composición de custom hooks
 
 Puedes combinar custom hooks para crear funcionalidades más complejas:
 
-```typescript
-function useUsuarioAutenticado() {
+```tsx
+interface Usuario {
+  nombre: string;
+}
+
+const useUsuarioAutenticado = () => {
   const { datos: usuario, cargando } = useFetch<Usuario>('/api/usuario');
-  const [sesionActiva, setSesionActiva] = useLocalStorage('sesion', false);
+  const [sesionActiva, setSesionActiva] = useLocalStorage<boolean>('sesion', false);
   
   useEffect(() => {
     if (usuario) {
@@ -489,10 +493,10 @@ function useUsuarioAutenticado() {
   };
   
   return { usuario, cargando, sesionActiva, cerrarSesion };
-}
+};
 
 // Uso
-function Header() {
+const Header = () => {
   const { usuario, cargando, cerrarSesion } = useUsuarioAutenticado();
   
   if (cargando) return <p>Cargando...</p>;
@@ -509,7 +513,7 @@ function Header() {
       )}
     </header>
   );
-}
+};
 ```
 
 ## Mejores prácticas
@@ -554,13 +558,13 @@ export { default as useForm } from './useForm';
 ```
 
 Importación simplificada:
-```typescript
+```tsx
 import { useFetch, useLocalStorage, useForm } from './hooks';
 ```
 
 ## Testing de custom hooks
 
-```typescript
+```tsx
 import { renderHook, act } from '@testing-library/react';
 import { useContador } from './useContador';
 

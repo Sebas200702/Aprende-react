@@ -17,10 +17,10 @@ Un componente es simplemente una **función de JavaScript que retorna HTML** (bu
 
 ## Tu primer componente
 
-```jsx
-function Boton() {
+```tsx
+const Boton = () => {
   return <button>Haz clic aquí</button>;
-}
+};
 ```
 
 ¡Eso es todo! Ya creaste un componente. Es:
@@ -32,8 +32,8 @@ function Boton() {
 
 Una vez creado, lo usas como si fuera una etiqueta HTML:
 
-```jsx
-function App() {
+```tsx
+const App = () => {
   return (
     <div>
       <h1>Mi aplicación</h1>
@@ -42,7 +42,7 @@ function App() {
       <Boton />
     </div>
   );
-}
+};
 ```
 
 <Tip>
@@ -53,8 +53,8 @@ function App() {
 
 Imagina que construyes una red social y necesitas mostrar perfiles de usuarios. Aquí está el componente:
 
-```jsx
-function TarjetaPerfil() {
+```tsx
+const TarjetaPerfil = () => {
   return (
     <div className="tarjeta">
       <img src="foto.jpg" alt="Perfil" />
@@ -63,13 +63,13 @@ function TarjetaPerfil() {
       <button>Seguir</button>
     </div>
   );
-}
+};
 ```
 
 Ahora puedes usarlo para mostrar muchos perfiles:
 
-```jsx
-function ListaPerfiles() {
+```tsx
+const ListaPerfiles = () => {
   return (
     <div>
       <TarjetaPerfil />
@@ -77,7 +77,7 @@ function ListaPerfiles() {
       <TarjetaPerfil />
     </div>
   );
-}
+};
 ```
 
 **El problema**: Todos muestran lo mismo. 🤔
@@ -88,18 +88,18 @@ function ListaPerfiles() {
 
 ### 1. Componentes funcionales (modernos)
 
-```jsx
-function Saludo() {
+```tsx
+const Saludo = () => {
   return <h1>¡Hola!</h1>;
-}
+};
 ```
 
 Estos son los que usamos hoy en día. Son **funciones simples**.
 
 ### 2. Componentes con lógica
 
-```jsx
-function Contador() {
+```tsx
+const Contador = () => {
   const numero = 5;
   const doble = numero * 2;
   
@@ -109,7 +109,7 @@ function Contador() {
       <p>El doble: {doble}</p>
     </div>
   );
-}
+};
 ```
 
 <Note>
@@ -118,8 +118,8 @@ function Contador() {
 
 ### 3. Componentes con condicionales
 
-```jsx
-function Mensaje() {
+```tsx
+const Mensaje = () => {
   const esDeNoche = true;
   
   return (
@@ -127,23 +127,23 @@ function Mensaje() {
       {esDeNoche ? <p>🌙 Buenas noches</p> : <p>☀️ Buenos días</p>}
     </div>
   );
-}
+};
 ```
 
 ## Composición de componentes
 
 Puedes **anidar componentes** como matrioshkas (muñecas rusas):
 
-```jsx
-function Avatar() {
+```tsx
+const Avatar = () => {
   return <img src="foto.jpg" alt="Avatar" />;
-}
+};
 
-function Nombre() {
+const Nombre = () => {
   return <h2>Juan Pérez</h2>;
-}
+};
 
-function TarjetaPerfil() {
+const TarjetaPerfil = () => {
   return (
     <div>
       <Avatar />
@@ -151,7 +151,7 @@ function TarjetaPerfil() {
       <button>Seguir</button>
     </div>
   );
-}
+};
 ```
 
 **Ventaja**: Si necesitas cambiar el avatar, solo modificas `Avatar`, y se actualiza en todos lados.
@@ -167,37 +167,37 @@ function TarjetaPerfil() {
 3. **Return obligatorio**: Debes retornar JSX
 
 ### ❌ Incorrecto
-```jsx
-function Malo() {
+```tsx
+const Malo = () => {
   return (
     <h1>Título</h1>
     <p>Párrafo</p>  // ¡Error! Dos elementos
   );
-}
+};
 ```
 
 ### ✅ Correcto
-```jsx
-function Bueno() {
+```tsx
+const Bueno = () => {
   return (
     <div>
       <h1>Título</h1>
       <p>Párrafo</p>
     </div>
   );
-}
+};
 ```
 
 ### ✅ También correcto (usando Fragment)
-```jsx
-function Bueno() {
+```tsx
+const Bueno = () => {
   return (
     <>
       <h1>Título</h1>
       <p>Párrafo</p>
     </>
   );
-}
+};
 ```
 
 <Tip>
@@ -206,17 +206,17 @@ function Bueno() {
 
 ## Ejemplo completo: App de tareas
 
-```jsx
-function TareaItem() {
+```tsx
+const TareaItem = () => {
   return (
     <div className="tarea">
       <input type="checkbox" />
       <span>Comprar leche</span>
     </div>
   );
-}
+};
 
-function ListaTareas() {
+const ListaTareas = () => {
   return (
     <div className="lista">
       <h1>Mis Tareas</h1>
@@ -225,11 +225,11 @@ function ListaTareas() {
       <TareaItem />
     </div>
   );
-}
+};
 
-function App() {
+const App = () => {
   return <ListaTareas />;
-}
+};
 ```
 
 **Estructura jerárquica:**
@@ -270,8 +270,8 @@ Ese código que parece HTML pero está en JavaScript se llama **JSX**.
 
 Puedes usar **llaves `{}`** para insertar JavaScript:
 
-```jsx
-function Info() {
+```tsx
+const Info = () => {
   const nombre = "Ana";
   const edad = 25;
   const esMayor = edad >= 18;
@@ -284,7 +284,7 @@ function Info() {
       <p>El doble de tu edad: {edad * 2}</p>
     </div>
   );
-}
+};
 ```
 
 ## Ejercicio mental 🧠

@@ -41,16 +41,16 @@ Hay dos formas de exportar: **named export** y **default export**.
 
 **Un archivo, una exportación principal:**
 
-```typescript
+```tsx
 // components/Boton.tsx
 interface BotonProps {
   texto: string;
   onClick: () => void;
 }
 
-function Boton({ texto, onClick }: BotonProps) {
+const Boton = ({ texto, onClick }: BotonProps) => {
   return <button onClick={onClick}>{texto}</button>;
-}
+};
 
 export default Boton; // Exportación por defecto
 ```
@@ -63,15 +63,15 @@ export default Boton; // Exportación por defecto
 
 **Un archivo, varias exportaciones:**
 
-```typescript
+```tsx
 // components/Utilidades.tsx
-export function formatearPrecio(precio: number): string {
+export const formatearPrecio = (precio: number): string => {
   return `$${precio.toFixed(2)}`;
-}
+};
 
-export function formatearFecha(fecha: Date): string {
+export const formatearFecha = (fecha: Date): string => {
   return fecha.toLocaleDateString('es-ES');
-}
+};
 
 export const IVA = 0.16;
 ```
@@ -80,18 +80,18 @@ export const IVA = 0.16;
 
 ### Importar Default Export
 
-```typescript
+```tsx
 // App.tsx
 import Boton from './components/Boton';
 
-function App() {
+const App = () => {
   return (
     <div>
       <h1>Mi App</h1>
       <Boton texto="Enviar" onClick={() => console.log('Clic')} />
     </div>
   );
-}
+};
 
 export default App;
 ```
@@ -106,11 +106,11 @@ export default App;
 
 ### Importar Named Exports
 
-```typescript
+```tsx
 // Página.tsx
 import { formatearPrecio, formatearFecha, IVA } from './components/Utilidades';
 
-function Producto() {
+const Producto = () => {
   const precio = 100;
   const fecha = new Date();
   
@@ -121,18 +121,18 @@ function Producto() {
       <p>Fecha: {formatearFecha(fecha)}</p>
     </div>
   );
-}
+};
 ```
 
 ### Importar varios
 
-```typescript
+```tsx
 import { formatearPrecio, formatearFecha } from './Utilidades';
 ```
 
 ### Importar todo como namespace
 
-```typescript
+```tsx
 import * as Utils from './Utilidades';
 
 Utils.formatearPrecio(100);
@@ -159,7 +159,7 @@ src/
 
 ### 1. Definir tipos (types/index.ts)
 
-```typescript
+```tsx
 // types/index.ts
 export interface Producto {
   id: number;
@@ -177,23 +177,23 @@ export interface ItemCarrito {
 
 ### 2. Funciones utilitarias (utils/formatters.ts)
 
-```typescript
+```tsx
 // utils/formatters.ts
-export function formatearPrecio(precio: number): string {
+export const formatearPrecio = (precio: number): string => {
   return new Intl.NumberFormat('es-ES', {
     style: 'currency',
     currency: 'EUR'
   }).format(precio);
-}
+};
 
-export function calcularTotal(items: { precio: number; cantidad: number }[]): number {
+export const calcularTotal = (items: { precio: number; cantidad: number }[]): number => {
   return items.reduce((total, item) => total + (item.precio * item.cantidad), 0);
-}
+};
 ```
 
 ### 3. Componente TarjetaProducto
 
-```typescript
+```tsx
 // components/TarjetaProducto.tsx
 import { Producto } from '../types';
 import { formatearPrecio } from '../utils/formatters';
@@ -203,7 +203,7 @@ interface TarjetaProductoProps {
   onAgregarCarrito: (producto: Producto) => void;
 }
 
-function TarjetaProducto({ producto, onAgregarCarrito }: TarjetaProductoProps) {
+const TarjetaProducto = ({ producto, onAgregarCarrito }: TarjetaProductoProps) => {
   return (
     <div className="tarjeta">
       <img src={producto.imagen} alt={producto.nombre} />
@@ -218,20 +218,20 @@ function TarjetaProducto({ producto, onAgregarCarrito }: TarjetaProductoProps) {
       </button>
     </div>
   );
-}
+};
 
 export default TarjetaProducto;
 ```
 
 ### 4. Componente Header
 
-```typescript
+```tsx
 // components/Header.tsx
 interface HeaderProps {
   cantidadItems: number;
 }
 
-function Header({ cantidadItems }: HeaderProps) {
+const Header = ({ cantidadItems }: HeaderProps) => {
   return (
     <header>
       <h1>Mi Tienda</h1>
@@ -240,21 +240,21 @@ function Header({ cantidadItems }: HeaderProps) {
       </div>
     </header>
   );
-}
+};
 
 export default Header;
 ```
 
 ### 5. App principal
 
-```typescript
+```tsx
 // App.tsx
 import { useState } from 'react';
 import Header from './components/Header';
 import TarjetaProducto from './components/TarjetaProducto';
 import { Producto, ItemCarrito } from './types';
 
-function App() {
+const App = () => {
   const [carrito, setCarrito] = useState<ItemCarrito[]>([]);
   
   const productos: Producto[] = [
@@ -281,7 +281,7 @@ function App() {
       </div>
     </div>
   );
-}
+};
 
 export default App;
 ```
@@ -290,7 +290,7 @@ export default App;
 
 ### Rutas relativas
 
-```typescript
+```tsx
 import Boton from './Boton';           // Mismo directorio
 import Boton from '../Boton';          // Directorio padre
 import Boton from '../../components/Boton'; // Dos niveles arriba
@@ -315,7 +315,7 @@ Puedes configurar alias en tu `tsconfig.json`:
 
 Entonces puedes importar así:
 
-```typescript
+```tsx
 import Boton from '@components/Boton';
 import { Producto } from '@types/index';
 import { formatearPrecio } from '@utils/formatters';
@@ -329,29 +329,29 @@ import { formatearPrecio } from '@utils/formatters';
 
 ### Opción 1: Named exports en el mismo archivo
 
-```typescript
+```tsx
 // components/Botones.tsx
-export function BotonPrimario({ texto }: { texto: string }) {
+export const BotonPrimario = ({ texto }: { texto: string }) => {
   return <button className="primario">{texto}</button>;
-}
+};
 
-export function BotonSecundario({ texto }: { texto: string }) {
+export const BotonSecundario = ({ texto }: { texto: string }) => {
   return <button className="secundario">{texto}</button>;
-}
+};
 
-export function BotonPeligro({ texto }: { texto: string }) {
+export const BotonPeligro = ({ texto }: { texto: string }) => {
   return <button className="peligro">{texto}</button>;
-}
+};
 ```
 
 Importación:
-```typescript
+```tsx
 import { BotonPrimario, BotonSecundario, BotonPeligro } from './components/Botones';
 ```
 
 ### Opción 2: Archivo índice (barrel export)
 
-```typescript
+```tsx
 // components/index.ts
 export { default as Boton } from './Boton';
 export { default as Tarjeta } from './Tarjeta';
@@ -360,7 +360,7 @@ export { default as Footer } from './Footer';
 ```
 
 Importación simplificada:
-```typescript
+```tsx
 import { Boton, Tarjeta, Header, Footer } from './components';
 ```
 
@@ -372,7 +372,7 @@ import { Boton, Tarjeta, Header, Footer } from './components';
 
 Puedes exportar algo que importaste:
 
-```typescript
+```tsx
 // types/index.ts
 export type { Producto } from './Producto';
 export type { Usuario } from './Usuario';
@@ -384,26 +384,26 @@ import { Producto, Usuario, Pedido } from './types';
 
 ## Importar estilos CSS
 
-```typescript
+```tsx
 // components/Boton.tsx
 import './Boton.css'; // CSS específico del componente
 
-function Boton({ texto }: { texto: string }) {
+const Boton = ({ texto }: { texto: string }) => {
   return <button>{texto}</button>;
-}
+};
 
 export default Boton;
 ```
 
 ## Importar imágenes
 
-```typescript
+```tsx
 // components/Logo.tsx
 import logoImg from '../assets/logo.png';
 
-function Logo() {
+const Logo = () => {
   return <img src={logoImg} alt="Logo" />;
-}
+};
 
 export default Logo;
 ```
@@ -412,19 +412,19 @@ export default Logo;
 
 Para componentes grandes que no se usan inmediatamente:
 
-```typescript
+```tsx
 import { lazy, Suspense } from 'react';
 
 // Carga el componente solo cuando se necesita
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 
-function App() {
+const App = () => {
   return (
     <Suspense fallback={<div>Cargando...</div>}>
       <Dashboard />
     </Suspense>
   );
-}
+};
 ```
 
 <Info>
@@ -483,7 +483,7 @@ src/
 
 ### ❌ Importación circular
 
-```typescript
+```tsx
 // A.tsx
 import B from './B';
 
@@ -495,18 +495,18 @@ import A from './A'; // ¡Círculo vicioso!
 
 ### ❌ Extensión incorrecta
 
-```typescript
+```tsx
 import Boton from './Boton.tsx'; // ❌ No incluyas .tsx
 import Boton from './Boton';     // ✅ Correcto
 ```
 
 ### ❌ Olvidar exportar
 
-```typescript
+```tsx
 // Boton.tsx
-function Boton() {
+const Boton = () => {
   return <button>Clic</button>;
-}
+};
 // ❌ Falta: export default Boton;
 ```
 

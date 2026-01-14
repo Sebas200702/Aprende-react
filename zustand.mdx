@@ -15,35 +15,35 @@ description: "Manejo de estado global simple y poderoso"
 
 ### El problema sin estado global
 
-```typescript
+```tsx
 // ❌ "Prop drilling": pasar datos por muchos niveles
-function App() {
+const App = () => {
   const [usuario, setUsuario] = useState(null);
   return <Nivel1 usuario={usuario} setUsuario={setUsuario} />;
-}
+};
 
-function Nivel1({ usuario, setUsuario }) {
+const Nivel1 = ({ usuario, setUsuario }: any) => {
   return <Nivel2 usuario={usuario} setUsuario={setUsuario} />;
-}
+};
 
-function Nivel2({ usuario, setUsuario }) {
+const Nivel2 = ({ usuario, setUsuario }: any) => {
   return <Nivel3 usuario={usuario} setUsuario={setUsuario} />;
-}
+};
 
-function Nivel3({ usuario, setUsuario }) {
+const Nivel3 = ({ usuario, setUsuario }: any) => {
   // Finalmente usamos el usuario aquí
   return <p>{usuario?.nombre}</p>;
-}
+};
 ```
 
 ### La solución con Zustand
 
-```typescript
+```tsx
 // ✅ Cualquier componente accede directamente al estado
-function Nivel3() {
+const Nivel3 = () => {
   const usuario = useUsuarioStore(state => state.usuario);
   return <p>{usuario?.nombre}</p>;
-}
+};
 ```
 
 ## Instalación
@@ -60,7 +60,7 @@ pnpm add zustand
 
 Una **store** es donde guardas tu estado global.
 
-```typescript
+```tsx
 // stores/useContadorStore.ts
 import { create } from 'zustand';
 
@@ -84,11 +84,11 @@ export const useContadorStore = create<ContadorStore>((set) => ({
 
 ### Usando la store
 
-```typescript
+```tsx
 // components/Contador.tsx
 import { useContadorStore } from '../stores/useContadorStore';
 
-function Contador() {
+const Contador = () => {
   const { cuenta, incrementar, decrementar, reiniciar } = useContadorStore();
   
   return (
@@ -99,13 +99,13 @@ function Contador() {
       <button onClick={reiniciar}>Reiniciar</button>
     </div>
   );
-}
+};
 
 // En otro componente
-function MostrarCuenta() {
+const MostrarCuenta = () => {
   const cuenta = useContadorStore(state => state.cuenta);
   return <p>La cuenta actual es: {cuenta}</p>;
-}
+};
 ```
 
 <Tip>
@@ -116,7 +116,7 @@ function MostrarCuenta() {
 
 Puedes seleccionar solo lo que necesitas para optimizar renders:
 
-```typescript
+```tsx
 // ✅ Solo se re-renderiza si 'cuenta' cambia
 const cuenta = useContadorStore(state => state.cuenta);
 
@@ -126,7 +126,7 @@ const { cuenta, incrementar } = useContadorStore();
 
 ## Ejemplo completo: Carrito de compras
 
-```typescript
+```tsx
 // types/index.ts
 export interface Producto {
   id: number;
@@ -141,7 +141,7 @@ export interface ItemCarrito {
 }
 ```
 
-```typescript
+```tsx
 // stores/useCarritoStore.ts
 import { create } from 'zustand';
 import { Producto, ItemCarrito } from '../types';
@@ -206,7 +206,7 @@ export const useCarritoStore = create<CarritoStore>((set, get) => ({
 
 ### Componente de producto
 
-```typescript
+```tsx
 // components/TarjetaProducto.tsx
 import { useCarritoStore } from '../stores/useCarritoStore';
 import { Producto } from '../types';
@@ -215,7 +215,7 @@ interface Props {
   producto: Producto;
 }
 
-function TarjetaProducto({ producto }: Props) {
+const TarjetaProducto = ({ producto }: Props) => {
   const agregarProducto = useCarritoStore(state => state.agregarProducto);
   
   return (
@@ -228,16 +228,16 @@ function TarjetaProducto({ producto }: Props) {
       </button>
     </div>
   );
-}
+};
 ```
 
 ### Componente del carrito
 
-```typescript
+```tsx
 // components/Carrito.tsx
 import { useCarritoStore } from '../stores/useCarritoStore';
 
-function Carrito() {
+const Carrito = () => {
   const items = useCarritoStore(state => state.items);
   const total = useCarritoStore(state => state.total);
   const eliminarProducto = useCarritoStore(state => state.eliminarProducto);
@@ -276,14 +276,14 @@ function Carrito() {
       </div>
     </div>
   );
-}
+};
 ```
 
 ## Persistencia con localStorage
 
 Zustand facilita guardar el estado en localStorage:
 
-```typescript
+```tsx
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
@@ -318,7 +318,7 @@ export const useConfiguracionStore = create<ConfiguracionStore>()(
 
 ## Acciones asíncronas
 
-```typescript
+```tsx
 // stores/useUsuarioStore.ts
 import { create } from 'zustand';
 
@@ -364,8 +364,8 @@ export const useUsuarioStore = create<UsuarioStore>((set) => ({
 
 ### Uso con async
 
-```typescript
-function PerfilUsuario() {
+```tsx
+const PerfilUsuario = () => {
   const { usuario, cargando, error, cargarUsuario } = useUsuarioStore();
   
   useEffect(() => {
@@ -382,14 +382,14 @@ function PerfilUsuario() {
       <p>{usuario.email}</p>
     </div>
   );
-}
+};
 ```
 
 ## Múltiples stores
 
 Puedes tener varias stores para diferentes propósitos:
 
-```typescript
+```tsx
 // stores/useAuthStore.ts
 export const useAuthStore = create<AuthStore>((set) => ({
   usuario: null,
@@ -418,7 +418,7 @@ export const useNotificacionesStore = create<NotificacionesStore>((set) => ({
 
 Zustand se integra con Redux DevTools:
 
-```typescript
+```tsx
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
@@ -436,20 +436,20 @@ export const useStore = create<Store>()(
 
 Para stores complejas, divide en "slices":
 
-```typescript
+```tsx
 // stores/slices/carritoSlice.ts
-export const createCarritoSlice = (set, get) => ({
+export const createCarritoSlice = (set: any, get: any) => ({
   items: [],
-  agregarProducto: (producto) => set((state) => ({
+  agregarProducto: (producto: any) => set((state: any) => ({
     items: [...state.items, { producto, cantidad: 1 }]
   })),
   // más acciones...
 });
 
 // stores/slices/usuarioSlice.ts
-export const createUsuarioSlice = (set, get) => ({
+export const createUsuarioSlice = (set: any, get: any) => ({
   usuario: null,
-  login: async (credentials) => { /* ... */ },
+  login: async (credentials: any) => { /* ... */ },
   // más acciones...
 });
 
@@ -517,7 +517,7 @@ src/
 
 ## Ejemplo final: Todo completo
 
-```typescript
+```tsx
 // stores/useTodosStore.ts
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -581,9 +581,9 @@ export const useTodosStore = create<TodosStore>()(
 );
 
 // Componente
-function TodoApp() {
+const TodoApp = () => {
   const { agregar, toggle, eliminar, filtro, setFiltro, todosFiltrados } = useTodosStore();
-  const [texto, setTexto] = useState('');
+  const [texto, setTexto] = useState<string>('');
   
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
@@ -629,7 +629,7 @@ function TodoApp() {
       </ul>
     </div>
   );
-}
+};
 ```
 
 ---
